@@ -1,74 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Interviews.css";
 
 export default function Interviews() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [interviews, setInterviews] = useState([]);
 
-  // Mock data for interviews
-  const interviews = [
-    {
-      id: 1,
-      title: "Frontend Developer Assessment",
-      role: "Frontend Developer",
-      status: "active",
-      candidates: 12,
-      completed: 8,
-      avgScore: 82,
-      duration: "45 min",
-      createdDate: "2024-01-15",
-      lastActivity: "2 hours ago",
-    },
-    {
-      id: 2,
-      title: "Backend Engineer Interview",
-      role: "Backend Developer",
-      status: "completed",
-      candidates: 8,
-      completed: 8,
-      avgScore: 85,
-      duration: "60 min",
-      createdDate: "2024-01-12",
-      lastActivity: "1 day ago",
-    },
-    {
-      id: 3,
-      title: "DevOps Specialist Test",
-      role: "DevOps Engineer",
-      status: "draft",
-      candidates: 0,
-      completed: 0,
-      avgScore: 0,
-      duration: "30 min",
-      createdDate: "2024-01-10",
-      lastActivity: "3 days ago",
-    },
-    {
-      id: 4,
-      title: "Full Stack Developer Assessment",
-      role: "Full Stack Developer",
-      status: "active",
-      candidates: 15,
-      completed: 6,
-      avgScore: 78,
-      duration: "90 min",
-      createdDate: "2024-01-08",
-      lastActivity: "4 hours ago",
-    },
-    {
-      id: 5,
-      title: "UI/UX Designer Interview",
-      role: "UI/UX Designer",
-      status: "paused",
-      candidates: 6,
-      completed: 3,
-      avgScore: 88,
-      duration: "60 min",
-      createdDate: "2024-01-05",
-      lastActivity: "2 days ago",
-    },
-  ];
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      try {
+        const token = localStorage.getItem('firebase_id_token');
+        const response = await fetch("http://localhost:8000/interviews", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include"
+        });
+        if (!response.ok) throw new Error("Failed to fetch interviews");
+        const data = await response.json();
+        setInterviews(data.interviews || []);
+      } catch (err) {
+        // setError(err.message); // This line was removed as per the edit hint
+      } finally {
+        // setLoading(false); // This line was removed as per the edit hint
+      }
+    };
+    fetchInterviews();
+  }, []);
 
   const roles = ["all", "Frontend Developer", "Backend Developer", "DevOps Engineer", "Full Stack Developer", "UI/UX Designer"];
   const statuses = ["all", "active", "completed", "draft", "paused"];

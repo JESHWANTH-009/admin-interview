@@ -1,7 +1,7 @@
 import React from "react";
 import "./Dashboard.css";
 
-export default function Dashboard() {
+export default function Dashboard({ onLogout }) {
   // Mock data for dashboard
   const metrics = [
     { label: "Total Interviews", value: "24", change: "+12%", trend: "up" },
@@ -65,9 +65,20 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>Welcome back! Here's what's happening with your interviews.</p>
+      <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+        <div>
+          <h1>Dashboard</h1>
+          <p>Welcome back! Here's what's happening with your interviews.</p>
+        </div>
+        <button
+          className="dashboard-logout-btn enhanced"
+          onClick={onLogout}
+          style={{ position: 'absolute', right: 0, top: 0, margin: '1.5rem 2rem 0 0', padding: '0.6rem 2rem', fontSize: '1.1rem', fontWeight: 600, borderRadius: '999px', background: 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)', color: '#fff', border: 'none', boxShadow: '0 4px 16px rgba(37,99,235,0.10)', letterSpacing: '0.03em', transition: 'background 0.2s, box-shadow 0.2s', zIndex: 2 }}
+          onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%)'}
+          onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #2563eb 0%, #1e40af 100%)'}
+        >
+          <span style={{ marginRight: 8, fontWeight: 700 }}>⎋</span> Logout
+        </button>
       </div>
 
       {/* Metrics Cards */}

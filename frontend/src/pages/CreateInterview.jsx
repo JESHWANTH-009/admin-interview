@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import CreateTemplateModal from "../components/CreateTemplateModal";
 import "./CreateInterview.css";
+import axios from "axios";
+import UploadPDFModal from '../components/UploadPDFModal';
 
 const ROLES = [
   "Frontend Developer",
@@ -27,11 +29,10 @@ const FOCUS_AREAS = [
 export default function CreateInterview() {
   const [form, setForm] = useState({
     title: "",
-    passingScore: 70,
     description: "",
     role: "",
     experience: "",
-    duration: "",
+    numQuestions: 5,
     questionSource: "ai",
     focusAreas: [],
     selectedTemplate: "",
@@ -39,10 +40,13 @@ export default function CreateInterview() {
   const [showTemplateSection, setShowTemplateSection] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [templates, setTemplates] = useState([]);
+  const [emails, setEmails] = useState("");
+  const [inviteStatus, setInviteStatus] = useState("");
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    setForm((f) => ({ ...f, [name]: name === 'numQuestions' ? Number(value) : value }));
   };
 
   const handleFocusToggle = (area) => {
@@ -59,10 +63,22 @@ export default function CreateInterview() {
     setShowTemplateSection(e.target.value === "template");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Submit form logic
-    alert("Interview Created!\n" + JSON.stringify(form, null, 2));
+    setInviteStatus("");
+    // TODO: Submit interview creation logic (AI or template)
+    // For demo, assume interview is created and we have interviewId
+    const interviewId = "demo-interview-id"; // Replace with real ID from backend
+    const emailList = emails.split(/[\s,;]+/).filter(Boolean);
+    try {
+      await axios.post("/interviews/send-invites", {
+        interview_id: interviewId,
+        emails: emailList,
+      });
+      setInviteStatus("Invitations sent successfully!");
+    } catch (err) {
+      setInviteStatus("Failed to send invitations.");
+    }
   };
 
   const handleTemplateSave = (template) => {
@@ -93,84 +109,8 @@ export default function CreateInterview() {
               required
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">Passing Score (%) *</label>
-            <input
-              name="passingScore"
-              type="number"
-              min={0}
-              max={100}
-              value={form.passingScore}
-              onChange={handleChange}
-              className="form-input"
-              required
-            />
-          </div>
         </div>
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Role *</label>
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="form-input"
-              required
-            >
-              <option value="">Select a role</option>
-              {ROLES.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Experience Level *</label>
-            <select
-              name="experience"
-              value={form.experience}
-              onChange={handleChange}
-              className="form-input"
-              required
-            >
-              <option value="">Select experience level</option>
-              {EXPERIENCE_LEVELS.map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Duration *</label>
-            <select
-              name="duration"
-              value={form.duration}
-              onChange={handleChange}
-              className="form-input"
-              required
-            >
-              <option value="">Select duration</option>
-              {DURATIONS.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="form-group">
-          <label className="form-label">Description</label>
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            className="form-input"
-            placeholder="Brief description of this interview session..."
-            rows={2}
-          />
-        </div>
+        {/* Move Question Source here */}
         <div className="form-group">
           <label className="form-label">Question Source *</label>
           <div className="radio-group">
@@ -196,75 +136,103 @@ export default function CreateInterview() {
             </label>
           </div>
         </div>
-        <div className="form-group">
-          <label className="form-label">Focus Areas (Optional)</label>
-          <div className="focus-tags">
-            {FOCUS_AREAS.map((area) => (
-              <span
-                key={area}
-                className={
-                  "focus-tag" +
-                  (form.focusAreas.includes(area) ? " selected" : "")
-                }
-                onClick={() => handleFocusToggle(area)}
+        {/* Conditionally render Role, Experience Level, Number of Questions only for AI Generated */}
+        {form.questionSource === "ai" && (
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Role *</label>
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="form-input"
+                required
               >
-                {area}
-              </span>
-            ))}
-          </div>
-        </div>
-        {showTemplateSection && (
-          <div className="template-section">
-            <div className="template-header">
-              <span>Select Question Template</span>
-              <button
-                type="button"
-                className="primary"
-                onClick={() => setTemplateModalOpen(true)}
-              >
-                + Create New Template
-              </button>
+                <option value="">Select a role</option>
+                {ROLES.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
             </div>
-            {templates.length > 0 ? (
-              <div className="template-select-group">
-                <select
-                  className="form-input"
-                  value={form.selectedTemplate}
-                  onChange={handleTemplateSelect}
-                  required
-                >
-                  <option value="">Select a template</option>
-                  {templates.map((t) => (
-                    <option key={t.name} value={t.name}>{t.name}</option>
-                  ))}
-                </select>
-                {selectedTemplateObj && (
-                  <div className="template-preview">
-                    <div className="template-preview-title">Questions in this template:</div>
-                    <ol>
-                      {selectedTemplateObj.questions.map((q, i) => (
-                        <li key={i} style={{marginBottom: 4}}>{q.text}</li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="template-empty">
-                <div>No templates yet</div>
-                <button type="button" className="outline" onClick={() => setTemplateModalOpen(true)}>
-                  Create Template
-                </button>
-              </div>
-            )}
+            <div className="form-group">
+              <label className="form-label">Experience Level *</label>
+              <select
+                name="experience"
+                value={form.experience}
+                onChange={handleChange}
+                className="form-input"
+                required
+              >
+                <option value="">Select experience level</option>
+                {EXPERIENCE_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Number of Questions *</label>
+              <input
+                name="numQuestions"
+                type="number"
+                min={1}
+                max={50}
+                value={form.numQuestions}
+                onChange={handleChange}
+                className="form-input"
+                required
+                style={{ width: 120 }}
+              />
+            </div>
           </div>
+        )}
+        {/* Show Upload PDF option for Custom Template */}
+        {form.questionSource === "template" && (
+          <div className="form-group">
+            <button
+              type="button"
+              className="primary"
+              style={{ marginBottom: 16 }}
+              onClick={() => setShowUploadModal(true)}
+            >
+              Upload PDF
+            </button>
+            <UploadPDFModal open={showUploadModal} onClose={() => setShowUploadModal(false)} />
+          </div>
+        )}
+        {/* Remove Description and Focus Areas, add Emails to Send */}
+        {/* <div className="form-group">
+          <label className="form-label">Description</label>
+          <textarea ... />
+        </div> */}
+        {/* <div className="form-group">
+          <label className="form-label">Focus Areas (Optional)</label>
+          ...
+        </div> */}
+        <div className="form-group">
+          <label className="form-label">Emails to Send *</label>
+          <textarea
+            name="emails"
+            value={emails}
+            onChange={e => setEmails(e.target.value)}
+            className="form-input"
+            placeholder="Enter candidate emails, separated by commas or new lines"
+            rows={3}
+            required
+          />
+        </div>
+        {inviteStatus && (
+          <div style={{ color: inviteStatus.includes("success") ? "green" : "red", marginBottom: 12 }}>{inviteStatus}</div>
         )}
         <div className="form-actions">
           <button type="button" className="outline" onClick={() => window.history.back()}>
             Cancel
           </button>
           <button type="submit" className="primary">
-            Create Interview
+            Send Invites
           </button>
         </div>
       </form>
