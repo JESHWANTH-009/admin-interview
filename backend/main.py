@@ -26,7 +26,7 @@ app.add_middleware(
 
 # Register routes
 app.include_router(interview_router)
-app.include_router(upload_pdf_router)  # Uncomment this
+app.include_router(upload_pdf_router) 
 app.include_router(ai_generate_router)
 app.include_router(candidate_router)
 app.include_router(invite_router)

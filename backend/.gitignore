@@ -1,4 +1,4 @@
 # .gitignore
 venv/
-backend/serviceAccountKey.json
+.\serviceAccountKey.json
 _pycache_/

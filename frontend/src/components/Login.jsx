@@ -17,16 +17,20 @@ function Login({ onLoginSuccess, onToggleView }) {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const idToken = await user.getIdToken();
-      console.log('✅ Email Login successful! Token details:', {
-        uid: user.uid,
-        email: user.email,
-        idToken
-      });
+
+      // ✅ Full console log (no truncation)
+      console.log('✅ Email Login Successful');
+      console.log('UID:', user.uid);
+      console.log('Email:', user.email);
+      console.log(`Token:\n${idToken}`);
+
+      // Optional: copy to clipboard for debugging
+      // navigator.clipboard.writeText(idToken);
 
       localStorage.setItem('firebase_id_token', idToken);
       if (onLoginSuccess) onLoginSuccess(user.uid, user.email, idToken);
 
-      // Delay redirect to show console logs
+      // Delay for console debug visibility
       setTimeout(() => {
         window.location.replace('/dashboard');
       }, 1000);
@@ -50,16 +54,15 @@ function Login({ onLoginSuccess, onToggleView }) {
       const userCredential = await signInWithPopup(auth, googleProvider);
       const user = userCredential.user;
       const idToken = await user.getIdToken();
-      console.log('✅ Google Login successful! Token details:', {
-        uid: user.uid,
-        email: user.email,
-        idToken
-      });
+
+      console.log('✅ Google Login Successful');
+      console.log('UID:', user.uid);
+      console.log('Email:', user.email);
+      console.log(`Token:\n${idToken}`);
 
       localStorage.setItem('firebase_id_token', idToken);
       if (onLoginSuccess) onLoginSuccess(user.uid, user.email, idToken);
 
-      // Delay redirect to show console logs
       setTimeout(() => {
         window.location.replace('/dashboard');
       }, 1000);
@@ -77,6 +80,7 @@ function Login({ onLoginSuccess, onToggleView }) {
           <h1 className="auth-title">Welcome Back</h1>
           <p className="auth-subtitle">Sign in to continue your interview preparation</p>
         </div>
+
         <button className="google-signin-btn" onClick={handleGoogleLogin} disabled={loading}>
           <span className="google-icon">
             {/* Google G Logo */}

@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  Outlet,
+} from "react-router-dom";
+
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Interviews from "./pages/Interviews";
@@ -8,9 +16,10 @@ import InterviewDetail from "./pages/InterviewDetail";
 import SendInvites from "./pages/SendInvites";
 import Settings from "./pages/Settings";
 import InterviewToken from "./pages/InterviewToken";
-import "./App.css";
 import Signup from './components/Signup';
 import Login from './components/Login';
+
+import "./App.css";
 
 function RequireAuth({ children }) {
   const location = useLocation();
@@ -34,6 +43,8 @@ function AppLayout({ onLogout }) {
           <Route path="/send-invites/:interviewId" element={<SendInvites />} />
           <Route path="/interview/:token" element={<InterviewToken />} />
           <Route path="/settings" element={<Settings />} />
+          {/* Catch-all route for unknown paths */}
+          <Route path="*" element={<div className="p-6 text-center text-red-600">404 - Page Not Found</div>} />
         </Routes>
       </main>
     </div>
@@ -58,6 +69,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route
           path="/login"
           element={
@@ -75,23 +87,23 @@ export default function App() {
           path="/signup"
           element={
             <Signup
-              onSignupSuccess={(_uid, _email) => {
+              onSignupSuccess={() => {
                 window.location.replace('/login');
               }}
               onToggleView={() => window.location.replace('/login')}
             />
           }
         />
-        {/* Redirect root to login or dashboard */}
+
+        {/* Root redirect */}
         <Route
           path="/"
           element={
-            isAuthenticated
-              ? <Navigate to="/dashboard" replace />
-              : <Navigate to="/login" replace />
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
           }
         />
-        {/* All protected routes */}
+
+        {/* All protected routes nested in AppLayout */}
         <Route
           path="/*"
           element={

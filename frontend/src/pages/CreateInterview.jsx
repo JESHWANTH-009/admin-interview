@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import CreateTemplateModal from "../components/CreateTemplateModal";
-import "./CreateInterview.css";
+import UploadPDFModal from "../components/UploadPDFModal";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import UploadPDFModal from '../components/UploadPDFModal';
+import "./CreateInterview.css";
 
 const ROLES = [
   "Frontend Developer",
@@ -11,20 +12,8 @@ const ROLES = [
   "Full Stack Developer",
   "UI/UX Designer",
 ];
+
 const EXPERIENCE_LEVELS = ["Junior", "Mid", "Senior"];
-const DURATIONS = ["30 min", "45 min", "60 min", "90 min"];
-const FOCUS_AREAS = [
-  "Data Structures & Algorithms",
-  "System Design",
-  "JavaScript/TypeScript",
-  "React/Frontend",
-  "Node.js/Backend",
-  "Database Design",
-  "API Design",
-  "Problem Solving",
-  "Code Review",
-  "Architecture Patterns",
-];
 
 export default function CreateInterview() {
   const [form, setForm] = useState({
@@ -37,80 +26,103 @@ export default function CreateInterview() {
     focusAreas: [],
     selectedTemplate: "",
   });
+
   const [showTemplateSection, setShowTemplateSection] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [templates, setTemplates] = useState([]);
-  const [emails, setEmails] = useState("");
-  const [inviteStatus, setInviteStatus] = useState("");
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [extractedQuestions, setExtractedQuestions] = useState([]);
+  const [editableQuestions, setEditableQuestions] = useState([]);
+  const [questionType, setQuestionType] = useState("Text");
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: name === 'numQuestions' ? Number(value) : value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "numQuestions" ? Number(value) : value,
+    }));
   };
 
   const handleFocusToggle = (area) => {
-    setForm((f) => ({
-      ...f,
-      focusAreas: f.focusAreas.includes(area)
-        ? f.focusAreas.filter((a) => a !== area)
-        : [...f.focusAreas, area],
+    setForm((prev) => ({
+      ...prev,
+      focusAreas: prev.focusAreas.includes(area)
+        ? prev.focusAreas.filter((a) => a !== area)
+        : [...prev.focusAreas, area],
     }));
   };
 
   const handleQuestionSource = (e) => {
-    setForm((f) => ({ ...f, questionSource: e.target.value, selectedTemplate: "" }));
+    setForm((prev) => ({
+      ...prev,
+      questionSource: e.target.value,
+      selectedTemplate: "",
+    }));
     setShowTemplateSection(e.target.value === "template");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setInviteStatus("");
-    // TODO: Submit interview creation logic (AI or template)
-    // For demo, assume interview is created and we have interviewId
-    const interviewId = "demo-interview-id"; // Replace with real ID from backend
-    const emailList = emails.split(/[\s,;]+/).filter(Boolean);
-    try {
-      await axios.post("/interviews/send-invites", {
-        interview_id: interviewId,
-        emails: emailList,
-      });
-      setInviteStatus("Invitations sent successfully!");
-    } catch (err) {
-      setInviteStatus("Failed to send invitations.");
-    }
+  const handleExtracted = (questions, type) => {
+    setExtractedQuestions(questions);
+    setEditableQuestions(questions);
+    setQuestionType(type);
+  };
+
+  const handleQuestionEdit = (index, value) => {
+    setEditableQuestions((prev) =>
+      prev.map((q, i) => (i === index ? value : q))
+    );
   };
 
   const handleTemplateSave = (template) => {
     setTemplates((prev) => [...prev, template]);
     setTemplateModalOpen(false);
-    setForm((f) => ({ ...f, selectedTemplate: template.name }));
+    setForm((prev) => ({ ...prev, selectedTemplate: template.name }));
   };
 
-  const handleTemplateSelect = (e) => {
-    setForm((f) => ({ ...f, selectedTemplate: e.target.value }));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("firebase_id_token");
+      const response = await axios.post(
+        "/interviews/create",
+        {
+          title: form.title,
+          role: form.role,
+          question_type: form.questionSource === "ai" ? "AI" : questionType,
+          questions: form.questionSource === "ai" ? [] : editableQuestions,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const interview_id = response.data.interview_id;
+      navigate(`/send-invites/${interview_id}`); // ✅ Corrected path
+    } catch (error) {
+      alert(error.response?.data?.detail || "Failed to create interview.");
+    }
   };
-
-  const selectedTemplateObj = templates.find(t => t.name === form.selectedTemplate);
 
   return (
     <div className="create-interview-page">
       <form className="create-interview-form" onSubmit={handleSubmit}>
         <h1 className="form-title">Create New Interview Session</h1>
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Interview Title *</label>
-            <input
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              className="form-input"
-              placeholder="e.g., Frontend Developer Assessment"
-              required
-            />
-          </div>
+
+        <div className="form-group">
+          <label className="form-label">Interview Title *</label>
+          <input
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            className="form-input"
+            placeholder="e.g., Frontend Developer Assessment"
+            required
+          />
         </div>
-        {/* Move Question Source here */}
+
         <div className="form-group">
           <label className="form-label">Question Source *</label>
           <div className="radio-group">
@@ -136,7 +148,7 @@ export default function CreateInterview() {
             </label>
           </div>
         </div>
-        {/* Conditionally render Role, Experience Level, Number of Questions only for AI Generated */}
+
         {form.questionSource === "ai" && (
           <div className="form-row">
             <div className="form-group">
@@ -184,12 +196,11 @@ export default function CreateInterview() {
                 onChange={handleChange}
                 className="form-input"
                 required
-                style={{ width: 120 }}
               />
             </div>
           </div>
         )}
-        {/* Show Upload PDF option for Custom Template */}
+
         {form.questionSource === "template" && (
           <div className="form-group">
             <button
@@ -200,42 +211,61 @@ export default function CreateInterview() {
             >
               Upload PDF
             </button>
-            <UploadPDFModal open={showUploadModal} onClose={() => setShowUploadModal(false)} />
+            <UploadPDFModal
+              open={showUploadModal}
+              onClose={() => setShowUploadModal(false)}
+              onExtracted={handleExtracted}
+            />
           </div>
         )}
-        {/* Remove Description and Focus Areas, add Emails to Send */}
-        {/* <div className="form-group">
-          <label className="form-label">Description</label>
-          <textarea ... />
-        </div> */}
-        {/* <div className="form-group">
-          <label className="form-label">Focus Areas (Optional)</label>
-          ...
-        </div> */}
-        <div className="form-group">
-          <label className="form-label">Emails to Send *</label>
-          <textarea
-            name="emails"
-            value={emails}
-            onChange={e => setEmails(e.target.value)}
-            className="form-input"
-            placeholder="Enter candidate emails, separated by commas or new lines"
-            rows={3}
-            required
-          />
-        </div>
-        {inviteStatus && (
-          <div style={{ color: inviteStatus.includes("success") ? "green" : "red", marginBottom: 12 }}>{inviteStatus}</div>
-        )}
+
+        {form.questionSource === "template" &&
+          extractedQuestions.length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <div
+                style={{
+                  maxHeight: 200,
+                  overflowY: "auto",
+                  border: "1px solid #eee",
+                  borderRadius: 6,
+                  padding: 12,
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>
+                  Extracted Questions (Editable)
+                </h3>
+                <ol>
+                  {editableQuestions.map((q, i) => (
+                    <li key={i} style={{ marginBottom: 8 }}>
+                      <input
+                        className="form-input"
+                        value={q}
+                        onChange={(e) =>
+                          handleQuestionEdit(i, e.target.value)
+                        }
+                        style={{ width: "90%" }}
+                      />
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+
         <div className="form-actions">
-          <button type="button" className="outline" onClick={() => window.history.back()}>
+          <button
+            type="button"
+            className="outline"
+            onClick={() => window.history.back()}
+          >
             Cancel
           </button>
           <button type="submit" className="primary">
-            Send Invites
+            Next
           </button>
         </div>
       </form>
+
       <CreateTemplateModal
         open={templateModalOpen}
         onClose={() => setTemplateModalOpen(false)}
@@ -243,4 +273,4 @@ export default function CreateInterview() {
       />
     </div>
   );
-} 
+}

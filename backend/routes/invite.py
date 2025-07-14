@@ -3,29 +3,71 @@ from pydantic import BaseModel, EmailStr
 from typing import List
 from auth import verify_firebase_token
 from firebase_admin import firestore
-from utils.email_utils import send_interview_email  # you’ll write this below
+# from utils.email_utils import send_email_via_brevo  # Currently disabled
 import uuid
+from datetime import datetime
+import os
 
-router = APIRouter(prefix="/interviews", tags=["Invites"])
+router = APIRouter(prefix="/invite", tags=["Invites"])
 db = firestore.client()
 
-class InviteRequest(BaseModel):
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+class InviteSendRequest(BaseModel):
     interview_id: str
     emails: List[EmailStr]
 
-@router.post("/send-invites")
-async def send_invites(data: InviteRequest, user=Depends(verify_firebase_token)):
-    try:
-        interview_ref = db.collection("interviews").document(data.interview_id)
-        if not interview_ref.get().exists:
-            raise HTTPException(status_code=404, detail="Interview not found")
+@router.post("/send")
+async def send_invites(
+    data: InviteSendRequest,
+    user=Depends(verify_firebase_token)
+):
+    successes = []
+    failures = []
 
-        for email in data.emails:
-            token = str(uuid.uuid4())
-            candidate_ref = interview_ref.collection("candidates").document(token)
-            candidate_ref.set({"email": email, "status": "not started"})
-            send_interview_email(email, token)
+    for email in data.emails:
+        token = str(uuid.uuid4())
+        link = f"{FRONTEND_URL}/interview/{token}"
+        candidate_doc = {
+            "interview_id": data.interview_id,
+            "email": email,
+            "status": "pending",
+            "sent_at": datetime.utcnow(),
+            "link": link
+        }
 
-        return {"message": "Invites sent"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        try:
+            # ✅ Save candidate token doc
+            db.collection("candidates").document(token).set(candidate_doc)
+
+            # ✅ Update interview doc to include this candidate (Firestore ArrayUnion)
+            interview_ref = db.collection("interviews").document(data.interview_id)
+            interview_ref.update({
+                "candidates": firestore.ArrayUnion([candidate_doc])
+            })
+
+            # ✅ Optionally send email
+            # send_email_via_brevo(email, link)
+
+            successes.append({"email": email, "link": link})
+
+        except Exception as e:
+            failures.append({"email": email, "reason": str(e)})
+
+    return {"success": successes, "failed": failures}
+
+
+@router.get("/interview/{uuid}")
+async def get_candidate_by_token(uuid: str):
+    doc_ref = db.collection("candidates").document(uuid)
+    doc = doc_ref.get()
+
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Invalid token")
+
+    data = doc.to_dict()
+    return {
+        "email": data.get("email"),
+        "interview_id": data.get("interview_id"),
+        "status": data.get("status")
+    }

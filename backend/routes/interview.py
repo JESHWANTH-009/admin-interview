@@ -30,7 +30,18 @@ async def create_interview(data: CreateInterviewRequest, user=Depends(verify_fir
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("")
+@router.get("/{interview_id}")
+async def get_interview(interview_id: str, user=Depends(verify_firebase_token)):
+    doc_ref = db.collection("interviews").document(interview_id)
+    doc = doc_ref.get()
+
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    return doc.to_dict()
+
+
+@router.get("/")
 async def list_interviews(user=Depends(verify_firebase_token)):
     try:
         interviews_ref = db.collection("interviews")

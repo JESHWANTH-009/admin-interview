@@ -67,8 +67,8 @@ export default function Dashboard({ onLogout }) {
     <div className="dashboard">
       <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
         <div>
-          <h1>Dashboard</h1>
-          <p>Welcome back! Here's what's happening with your interviews.</p>
+        <h1>Dashboard</h1>
+        <p>Welcome back! Here's what's happening with your interviews.</p>
         </div>
         <button
           className="dashboard-logout-btn enhanced"
