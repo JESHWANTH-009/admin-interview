@@ -2,3 +2,6 @@
 venv/
 .\serviceAccountKey.json
 _pycache_/
+backend/serviceAccountKey.json
+backend/.env
+
