@@ -21,7 +21,14 @@ export default function Interviews() {
         });
         if (!response.ok) throw new Error("Failed to fetch interviews");
         const data = await response.json();
-        setInterviews(data.interviews || []);
+        // Sort interviews by created_at (or createdAt/createdDate) descending
+        const sorted = (data.interviews || []).slice().sort((a, b) => {
+          // Try all possible field names
+          const aTime = new Date(a.created_at || a.createdAt || a.createdDate || 0).getTime();
+          const bTime = new Date(b.created_at || b.createdAt || b.createdDate || 0).getTime();
+          return bTime - aTime;
+        });
+        setInterviews(sorted);
       } catch (err) {
         // handle error
       }
