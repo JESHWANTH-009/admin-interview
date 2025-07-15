@@ -1,6 +1,6 @@
 # .gitignore
 venv/
-.\serviceAccountKey.json
+serviceAccountKey.json
 _pycache_/
 backend/.env
 backend/serviceAccountKey.json
