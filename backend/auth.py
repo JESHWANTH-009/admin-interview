@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Literal
 
 # Load environment variables
 load_dotenv()
@@ -46,16 +47,23 @@ def save_user_to_firestore(uid: str, email: str, name: str = ""):
         })
 
 # Verify Firebase ID Token and log user in
+# Verify Firebase ID Token and log user in
 async def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
     try:
+        # 🔍 Debugging the raw token
+        print("🔐 Authorization Header:", credentials.credentials if credentials else "None")
+
         token = credentials.credentials
         decoded_token = firebase_auth.verify_id_token(token)
+
+        # 🔍 Debug decoded token data
+        print("✅ Decoded Token:", decoded_token)
 
         uid = decoded_token.get("uid")
         email = decoded_token.get("email")
         name = decoded_token.get("name", "")  # Optional: Display name from Firebase
 
-        # Save user to Firestore
+        # Save user to Firestore (if not exists)
         save_user_to_firestore(uid, email, name)
 
         return {
@@ -65,6 +73,7 @@ async def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Depe
         }
 
     except Exception as e:
+        print(f"❌ Token verification failed: {str(e)}")  # Add this log
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid Firebase token: {str(e)}"

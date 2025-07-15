@@ -34,6 +34,10 @@ export default function CreateInterview() {
   const [extractedQuestions, setExtractedQuestions] = useState([]);
   const [editableQuestions, setEditableQuestions] = useState([]);
   const [questionType, setQuestionType] = useState("Text");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  // Remove aiQuestionType state
+  // const [aiQuestionType, setAiQuestionType] = useState("Text");
 
   const navigate = useNavigate();
 
@@ -83,15 +87,35 @@ export default function CreateInterview() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
     try {
+      let questions = editableQuestions;
+      let type = questionType;
+      if (form.questionSource === "ai") {
+        // Generate questions via backend
+        const res = await axios.post("/generate/ai", {
+          role: form.role,
+          experience: form.experience,
+          count: form.numQuestions,
+          question_type: "Text" // Always use 'Text'
+        }, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("firebase_id_token")}`,
+          },
+        });
+        questions = res.data.questions;
+        type = "AI";
+      }
       const token = localStorage.getItem("firebase_id_token");
       const response = await axios.post(
         "/interviews/create",
         {
           title: form.title,
           role: form.role,
-          question_type: form.questionSource === "ai" ? "AI" : questionType,
-          questions: form.questionSource === "ai" ? [] : editableQuestions,
+          question_type: form.questionSource === "ai" ? "Text" : type,
+          questions: questions,
+          created_at: new Date().toISOString()
         },
         {
           headers: {
@@ -100,9 +124,21 @@ export default function CreateInterview() {
         }
       );
       const interview_id = response.data.interview_id;
-      navigate(`/send-invites/${interview_id}`); // ✅ Corrected path
+      navigate(`/send-invites/${interview_id}`);
     } catch (error) {
-      alert(error.response?.data?.detail || "Failed to create interview.");
+      let msg = "Failed to create interview.";
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === "string") {
+          msg = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          msg = error.response.data.detail.map(e => e.msg).join("; ");
+        } else if (typeof error.response.data.detail === "object") {
+          msg = JSON.stringify(error.response.data.detail);
+        }
+      }
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,6 +184,8 @@ export default function CreateInterview() {
             </label>
           </div>
         </div>
+
+        {/* Remove Question Type select for AI Generated */}
 
         {form.questionSource === "ai" && (
           <div className="form-row">
@@ -260,10 +298,12 @@ export default function CreateInterview() {
           >
             Cancel
           </button>
-          <button type="submit" className="primary">
-            Next
+          <button type="submit" disabled={loading} className="primary">
+            {loading ? "Loading..." : "Next"}
           </button>
         </div>
+        {error && <div className="error-message">{error}</div>}
+        {loading && <div className="loading-message">Generating questions, please wait...</div>}
       </form>
 
       <CreateTemplateModal
