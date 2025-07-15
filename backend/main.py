@@ -7,6 +7,7 @@ from routes.ai_generate import router as ai_generate_router
 from routes.candidate import router as candidate_router
 from routes.invite import router as invite_router
 from routes.results import router as results_router
+
 app = FastAPI()
 
 # Allow frontend
@@ -31,6 +32,7 @@ app.include_router(ai_generate_router)
 app.include_router(candidate_router)
 app.include_router(invite_router)
 app.include_router(results_router)
+
 
 @app.get("/")
 def root():

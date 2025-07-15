@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import "./InterviewToken.css"; // ✅ Importing your custom styles
+import "./InterviewToken.css";
 
+const API_URL = process.env.REACT_APP_API_URL;
 export default function InterviewToken() {
   const { token } = useParams();
   const [loading, setLoading] = useState(true);
@@ -10,13 +11,17 @@ export default function InterviewToken() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [evaluation, setEvaluation] = useState(null);
+
+ 
 
   useEffect(() => {
     const loadInterview = async () => {
       try {
-        const res1 = await axios.get(`/invite/interview/${token}`);
+        const res1 = await axios.get(`${API_URL}/invite/interview/${token}`);
         const candidateData = res1.data;
-        const res2 = await axios.get(`/interviews/public/${candidateData.interview_id}`);
+
+        const res2 = await axios.get(`${API_URL}/interviews/public/${candidateData.interview_id}`);
         setInterview(res2.data);
         setAnswers(new Array(res2.data?.questions?.length || 0).fill(""));
       } catch (err) {
@@ -26,6 +31,7 @@ export default function InterviewToken() {
         setLoading(false);
       }
     };
+
     loadInterview();
   }, [token]);
 
@@ -40,27 +46,43 @@ export default function InterviewToken() {
 
   const handleSubmit = async () => {
     try {
-      await axios.post(`/interview/submit`, { token, answers });
+      const res = await axios.post(`${API_URL}/interviews/submit`, {
+        token,
+        answers
+      });
+      setEvaluation(res.data);
       setSubmitted(true);
     } catch (err) {
       alert("Failed to submit answers.");
-      console.error(err);
+      console.error("Submission failed:", err);
     }
   };
 
-  if (loading) return <div className="interview-token-page">Loading interview...</div>;
-
   const questionList = interview?.questions || [];
+
+  if (loading) return <div className="interview-token-page">Loading interview...</div>;
 
   if (questionList.length === 0) {
     return <div className="interview-token-page error">No questions found or invalid link.</div>;
   }
 
-  if (submitted) {
+  if (submitted && evaluation) {
     return (
       <div className="interview-token-page submitted">
         <h2>Thank you!</h2>
         <p>Your answers have been submitted successfully.</p>
+        <h3>Your Results</h3>
+        <ul>
+          {evaluation.evaluations?.map((result, idx) => (
+            <li key={idx} className="result-item">
+              <strong>Q{idx + 1}: {result.question}</strong>
+              <p><strong>Your Answer:</strong> {result.answer}</p>
+              <p><strong>Score:</strong> {result.score}</p>
+              <p><strong>Feedback:</strong> {result.feedback}</p>
+            </li>
+          ))}
+        </ul>
+        <h4>Total Score: {evaluation.total_score} / {questionList.length}</h4>
       </div>
     );
   }
@@ -73,9 +95,7 @@ export default function InterviewToken() {
       </p>
 
       <div className="question-box">
-        {/* <p className="question-text">{currentQuestion + 1}. {questionList[currentQuestion]}</p> */}
         <p className="question-text">{questionList[currentQuestion]}</p>
-
       </div>
 
       <textarea

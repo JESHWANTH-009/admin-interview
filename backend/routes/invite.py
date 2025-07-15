@@ -37,8 +37,8 @@ async def send_invites(
         }
 
         try:
-            # ✅ Save candidate token doc
-            db.collection("candidates").document(token).set(candidate_doc)
+            # ✅ Save candidate token doc in 'invites'
+            db.collection("invites").document(token).set(candidate_doc)
 
             # ✅ Update interview doc to include this candidate (Firestore ArrayUnion)
             interview_ref = db.collection("interviews").document(data.interview_id)
@@ -59,7 +59,7 @@ async def send_invites(
 
 @router.get("/interview/{uuid}")
 async def get_candidate_by_token(uuid: str):
-    doc_ref = db.collection("candidates").document(uuid)
+    doc_ref = db.collection("invites").document(uuid)
     doc = doc_ref.get()
 
     if not doc.exists:

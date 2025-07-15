@@ -10,3 +10,7 @@ class CreateInterviewRequest(BaseModel):
     role: str
     question_type: Literal["MCQ", "Text"]
     questions: List[str]
+
+class SubmitAnswersRequest(BaseModel):
+    token: str
+    answers: List[str]
