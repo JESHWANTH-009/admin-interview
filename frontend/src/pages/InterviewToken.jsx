@@ -68,21 +68,39 @@ export default function InterviewToken() {
 
   if (submitted && evaluation) {
     return (
-      <div className="interview-token-page submitted">
-        <h2>Thank you!</h2>
-        <p>Your answers have been submitted successfully.</p>
-        <h3>Your Results</h3>
-        <ul>
+      <div style={{ maxWidth: 900, margin: '40px auto', background: '#f8fafc', borderRadius: 16, padding: 32, boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+        <h2 style={{ textAlign: 'center', color: '#16a34a', fontWeight: 800, marginBottom: 8 }}>Thank you!</h2>
+        <p style={{ textAlign: 'center', color: '#334155', fontSize: 18, marginBottom: 32 }}>Your answers have been submitted successfully.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {evaluation.evaluations?.map((result, idx) => (
-            <li key={idx} className="result-item">
-              <strong>Q{idx + 1}: {result.question}</strong>
-              <p><strong>Your Answer:</strong> {result.answer}</p>
-              <p><strong>Score:</strong> {result.score}</p>
-              <p><strong>Feedback:</strong> {result.feedback}</p>
-            </li>
+            <div key={idx} style={{ background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 10 }}><span style={{ color: '#2563eb' }}>Q{idx + 1}:</span> {result.question}</div>
+              <div style={{ marginBottom: 10 }}>
+                <span style={{ fontWeight: 600, color: '#64748b', marginRight: 8 }}>Your Answer:</span>
+                <span style={{ color: '#334155' }}>{result.answer || <span style={{ color: '#9ca3af' }}>(No answer provided)</span>}</span>
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <span style={{ fontWeight: 600, color: '#64748b', marginRight: 8 }}>Score:</span>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '4px 16px',
+                  borderRadius: 16,
+                  background: result.score > 0 ? '#dcfce7' : '#fee2e2',
+                  color: result.score > 0 ? '#166534' : '#dc2626',
+                  fontWeight: 700,
+                  fontSize: 15
+                }}>{result.score}</span>
+              </div>
+              <div style={{ background: '#f1f5f9', borderRadius: 8, padding: 14, color: '#334155', fontSize: 15, fontStyle: 'italic' }}>
+                <span style={{ fontWeight: 600, color: '#2563eb', marginRight: 8 }}>Feedback:</span>
+                {result.feedback || <span style={{ color: '#9ca3af' }}>(No feedback provided)</span>}
+              </div>
+            </div>
           ))}
-        </ul>
-        <h4>Total Score: {evaluation.total_score} / {questionList.length}</h4>
+        </div>
+        <div style={{ textAlign: 'right', marginTop: 36, fontWeight: 800, fontSize: 20, color: '#1e293b' }}>
+          Total Score: {evaluation.total_score} / {questionList.length}
+        </div>
       </div>
     );
   }
