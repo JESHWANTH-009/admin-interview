@@ -41,6 +41,7 @@ const InterviewDetails = () => {
               <th>Email</th>
               <th>Link</th>
               <th>Status</th>
+              <th>Scores</th>
               <th>Sent At</th>
             </tr>
           </thead>
@@ -52,6 +53,7 @@ const InterviewDetails = () => {
                   <a href={c.link} target="_blank" rel="noopener noreferrer">{c.link}</a>
                 </td>
                 <td>{c.status}</td>
+                <td>{c.status === "completed" && c.total_score !== undefined ? c.total_score : "-"}</td>
                 <td>{new Date(c.sent_at).toLocaleString()}</td>
               </tr>
             ))}

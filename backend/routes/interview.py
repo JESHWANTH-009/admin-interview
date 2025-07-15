@@ -10,6 +10,7 @@ import re
 import json
 from pydantic import BaseModel
 from typing import List
+from llm.gemini_evaluator import evaluate_answer
 
 router = APIRouter(prefix="/interviews", tags=["Interview"])
 db = firestore.client()
@@ -93,55 +94,16 @@ async def submit_answers(data: SubmitAnswersRequest):
     scores = []
     feedback = []
 
-    headers = {
-        "Content-Type": "application/json",
-        "x-goog-api-key": GEMINI_API_KEY
-    }
-
-    async with httpx.AsyncClient() as client:
-        for question, answer in zip(questions, answers):
-            system_prompt = (
-                "You are an AI evaluator. Evaluate the candidate's answer to the question below.\n"
-                "Rate the answer with a score from 0 to 1 based on: Accuracy, Relevance, Clarity, and Completeness.\n"
-                "Labels to consider: Accurate, Relevant, Irrelevant, Unclear, Incorrect.\n"
-                "Return ONLY a JSON object with 'score' and 'feedback' as keys, and nothing else.\n"
-                "Example: {\"score\": 0.8, \"feedback\": \"Good answer.\"}\n\n"
-                f"Question: {question}\nAnswer: {answer}"
-            )
-
-            payload = {
-                "contents": [{
-                    "parts": [{"text": system_prompt}]
-                }]
-            }
-
-            try:
-                response = await client.post(GEMINI_API_URL, headers=headers, json=payload)
-                data = response.json()
-                print("Gemini API raw response:", data)  # Debug print
-
-                if "candidates" in data and data["candidates"]:
-                    text = data["candidates"][0]["content"]["parts"][0]["text"]
-                    match = re.search(r"\{.*?\}", text, re.DOTALL)
-                    if match:
-                        parsed = json.loads(match.group())
-                        score = parsed.get("score", 0)
-                        fb = parsed.get("feedback", "")
-                    else:
-                        fb = f"LLM did not return a valid JSON object. Raw output: {text}"
-                else:
-                    fb = f"Unexpected Gemini response: {data}"
-                    score = 0
-
-            except Exception as e:
-                evaluation_results.append({
-                    "question": question,
-                    "answer": answer,
-                    "score": 0,
-                    "feedback": f"Evaluation failed: {str(e)}"
-                })
-                scores.append(0)
-                feedback.append("Evaluation failed")
+    for question, answer in zip(questions, answers):
+        result = await evaluate_answer(question, answer)
+        evaluation_results.append({
+            "question": question,
+            "answer": answer,
+            "score": result.get("score", 0),
+            "feedback": result.get("feedback", "")
+        })
+        scores.append(result.get("score", 0))
+        feedback.append(result.get("feedback", ""))
 
     total_score = sum(scores)
 
@@ -154,6 +116,27 @@ async def submit_answers(data: SubmitAnswersRequest):
         "submitted_at": datetime.utcnow(),
         "total_score": total_score
     })
+
+    # Update the candidate in the interview's candidates array
+    interview_doc = interview_ref.get()
+    if interview_doc.exists:
+        interview_data = interview_doc.to_dict()
+        candidates = interview_data.get("candidates", [])
+        updated_candidates = []
+        for c in candidates:
+            if (
+                c.get("email", "").strip().lower() == candidate_data.get("email", "").strip().lower()
+                and c.get("link") == candidate_data.get("link")
+            ):
+                c["status"] = "completed"
+                c["answers"] = answers
+                c["scores"] = scores
+                c["feedback"] = feedback
+                c["evaluations"] = evaluation_results
+                c["submitted_at"] = datetime.utcnow()
+                c["total_score"] = total_score
+            updated_candidates.append(c)
+        interview_ref.update({"candidates": updated_candidates})
 
     return {
         "scores": scores,
