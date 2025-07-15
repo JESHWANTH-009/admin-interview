@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Interviews from "./pages/Interviews";
 import CreateInterview from "./pages/CreateInterview";
 import InterviewDetail from "./pages/InterviewDetail";
+import InterviewDetails from './pages/InterviewDetails';//working
 import SendInvites from "./pages/SendInvites";
 import Settings from "./pages/Settings";
 import InterviewToken from "./pages/InterviewToken";
@@ -40,6 +41,7 @@ function AppLayout({ onLogout }) {
           <Route path="/interviews" element={<Interviews />} />
           <Route path="/create" element={<CreateInterview />} />
           <Route path="/interviews/:id" element={<InterviewDetail />} />
+          <Route path="/interview/:id/details" element={<InterviewDetails />} />
           <Route path="/send-invites/:interviewId" element={<SendInvites />} />
           <Route path="/interview/:token" element={<InterviewToken />} />
           <Route path="/settings" element={<Settings />} />

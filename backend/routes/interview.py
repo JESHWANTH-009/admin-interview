@@ -49,3 +49,14 @@ async def list_interviews(user=Depends(verify_firebase_token)):
         return {"interviews": interviews}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/public/{interview_id}")
+async def get_interview_public(interview_id: str):
+    doc_ref = db.collection("interviews").document(interview_id)
+    doc = doc_ref.get()
+
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    return doc.to_dict()

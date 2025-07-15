@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import './InterviewPage.css';
 
 const API_BASE_URL = 'http://localhost:8000'; // or your FastAPI backend URL
 

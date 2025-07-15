@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./Interviews.css";
+import { useNavigate } from "react-router-dom";
 
 export default function Interviews() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [interviews, setInterviews] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -21,9 +23,7 @@ export default function Interviews() {
         const data = await response.json();
         setInterviews(data.interviews || []);
       } catch (err) {
-        // setError(err.message); // This line was removed as per the edit hint
-      } finally {
-        // setLoading(false); // This line was removed as per the edit hint
+        // handle error
       }
     };
     fetchInterviews();
@@ -32,13 +32,11 @@ export default function Interviews() {
   const roles = ["all", "Frontend Developer", "Backend Developer", "DevOps Engineer", "Full Stack Developer", "UI/UX Designer"];
   const statuses = ["all", "active", "completed", "draft", "paused"];
 
-  // Filter interviews based on search and filters
   const filteredInterviews = interviews.filter((interview) => {
     const matchesSearch = interview.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          interview.role.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || interview.status === statusFilter;
     const matchesRole = roleFilter === "all" || interview.role === roleFilter;
-    
     return matchesSearch && matchesStatus && matchesRole;
   });
 
@@ -87,7 +85,6 @@ export default function Interviews() {
         </button>
       </div>
 
-      {/* Search and Filters */}
       <div className="filters-section">
         <div className="search-box">
           <input
@@ -99,7 +96,7 @@ export default function Interviews() {
           />
           <span className="search-icon">🔍</span>
         </div>
-        
+
         <div className="filter-controls">
           <select
             value={statusFilter}
@@ -112,7 +109,7 @@ export default function Interviews() {
               </option>
             ))}
           </select>
-          
+
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -127,14 +124,12 @@ export default function Interviews() {
         </div>
       </div>
 
-      {/* Results Summary */}
       <div className="results-summary">
         <span className="results-count">
           {filteredInterviews.length} interview{filteredInterviews.length !== 1 ? 's' : ''} found
         </span>
       </div>
 
-      {/* Interviews Grid */}
       <div className="interviews-grid">
         {filteredInterviews.map((interview) => (
           <div key={interview.id} className="interview-card">
@@ -146,15 +141,9 @@ export default function Interviews() {
                 </span>
               </div>
               <div className="card-actions">
-                <button className="action-btn" title="Edit">
-                  Edit
-                </button>
-                <button className="action-btn" title="Duplicate">
-                  Duplicate
-                </button>
-                <button className="action-btn" title="More">
-                  More
-                </button>
+                <button className="action-btn" title="Edit">Edit</button>
+                <button className="action-btn" title="Duplicate">Duplicate</button>
+                <button className="action-btn" title="More">More</button>
               </div>
             </div>
 
@@ -162,11 +151,11 @@ export default function Interviews() {
               <div className="interview-role no-icon">
                 {interview.role}
               </div>
-              
+
               <div className="interview-stats">
                 <div className="stat-item">
                   <span className="stat-label">Candidates</span>
-                  <span className="stat-value">{interview.candidates}</span>
+                  <span className="stat-value">{Array.isArray(interview.candidates) ? interview.candidates.length : 0}</span>
                 </div>
                 <div className="stat-item">
                   <span className="stat-label">Completed</span>
@@ -189,7 +178,13 @@ export default function Interviews() {
             </div>
 
             <div className="card-footer">
-              <button className="outline">View Details</button>
+            <button
+  className="outline"
+  onClick={() => window.location.href = `/interview/${interview.id}/details`}
+>
+  View Details
+</button>
+
               {getPrimaryAction(interview)}
             </div>
           </div>
@@ -206,4 +201,4 @@ export default function Interviews() {
       )}
     </div>
   );
-} 
+}

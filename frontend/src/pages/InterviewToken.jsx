@@ -1,73 +1,104 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import "./InterviewToken.css"; // ✅ Importing your custom styles
 
 export default function InterviewToken() {
   const { token } = useParams();
+  const [loading, setLoading] = useState(true);
   const [interview, setInterview] = useState(null);
-  const [candidate, setCandidate] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
-  const [answerInput, setAnswerInput] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    async function fetchInterview() {
+    const loadInterview = async () => {
       try {
-        const candidateRes = await axios.get(`/invite/interview/${token}`);
-        setCandidate(candidateRes.data);
-        const interviewRes = await axios.get(`/interviews/${candidateRes.data.interview_id}`);
-        setInterview(interviewRes.data);
-        setAnswers(new Array(interviewRes.data.questions.length).fill(''));
+        const res1 = await axios.get(`/invite/interview/${token}`);
+        const candidateData = res1.data;
+        const res2 = await axios.get(`/interviews/public/${candidateData.interview_id}`);
+        setInterview(res2.data);
+        setAnswers(new Array(res2.data?.questions?.length || 0).fill(""));
       } catch (err) {
-        console.error("Invalid token or interview not found.");
+        alert("Invalid or expired interview link.");
+        console.error("AxiosError", err);
+      } finally {
+        setLoading(false);
       }
-    }
-    fetchInterview();
+    };
+    loadInterview();
   }, [token]);
 
-  const handleNext = () => {
-    const updated = [...answers];
-    updated[currentIndex] = answerInput;
-    setAnswers(updated);
-    setAnswerInput(updated[currentIndex + 1] || '');
-    setCurrentIndex(currentIndex + 1);
+  const handleAnswerChange = (e) => {
+    const updatedAnswers = [...answers];
+    updatedAnswers[currentQuestion] = e.target.value;
+    setAnswers(updatedAnswers);
   };
 
+  const nextQuestion = () => setCurrentQuestion((prev) => prev + 1);
+  const prevQuestion = () => setCurrentQuestion((prev) => prev - 1);
+
   const handleSubmit = async () => {
-    const updated = [...answers];
-    updated[currentIndex] = answerInput;
     try {
-      await axios.post(`/invite/submit/${token}`, updated);
+      await axios.post(`/interview/submit`, { token, answers });
       setSubmitted(true);
     } catch (err) {
-      alert('Failed to submit answers');
+      alert("Failed to submit answers.");
+      console.error(err);
     }
   };
 
-  if (!interview || !candidate) return <div className="p-6">Loading interview...</div>;
-  if (submitted) return <div className="p-6 text-green-600">Your interview has been submitted. Thank you!</div>;
+  if (loading) return <div className="interview-token-page">Loading interview...</div>;
+
+  const questionList = interview?.questions || [];
+
+  if (questionList.length === 0) {
+    return <div className="interview-token-page error">No questions found or invalid link.</div>;
+  }
+
+  if (submitted) {
+    return (
+      <div className="interview-token-page submitted">
+        <h2>Thank you!</h2>
+        <p>Your answers have been submitted successfully.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-2xl mx-auto mt-12 p-4 border rounded shadow">
-      <h2 className="text-xl font-bold mb-6 text-center">{interview.title}</h2>
-      <div className="mb-4">
-        <div className="text-gray-700 mb-2">
-          <strong>Question {currentIndex + 1} of {interview.questions.length}</strong>
-        </div>
-        <div className="text-lg font-medium mb-3">{interview.questions[currentIndex]}</div>
-        <textarea
-          value={answerInput}
-          onChange={e => setAnswerInput(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
-          rows={4}
-        />
+    <div className="interview-token-container">
+      <h1 className="interview-title">{interview?.title}</h1>
+      <p className="question-progress">
+        Question {currentQuestion + 1} of {questionList.length}
+      </p>
+
+      <div className="question-box">
+        {/* <p className="question-text">{currentQuestion + 1}. {questionList[currentQuestion]}</p> */}
+        <p className="question-text">{questionList[currentQuestion]}</p>
+
       </div>
-      <div className="flex justify-end">
-        {currentIndex < interview.questions.length - 1 ? (
-          <button onClick={handleNext} className="bg-blue-600 text-white px-4 py-2 rounded">Next</button>
+
+      <textarea
+        className="answer-box"
+        placeholder="Type your answer here..."
+        value={answers[currentQuestion]}
+        onChange={handleAnswerChange}
+        required
+      />
+
+      <div className="button-group">
+        <button
+          disabled={currentQuestion === 0}
+          onClick={prevQuestion}
+          className="nav-btn"
+        >
+          Previous
+        </button>
+
+        {currentQuestion < questionList.length - 1 ? (
+          <button onClick={nextQuestion} className="nav-btn primary-btn">Next</button>
         ) : (
-          <button onClick={handleSubmit} className="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+          <button onClick={handleSubmit} className="nav-btn submit-btn">Submit</button>
         )}
       </div>
     </div>
