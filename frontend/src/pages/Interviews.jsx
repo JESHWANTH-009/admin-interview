@@ -104,18 +104,6 @@ export default function Interviews() {
 
         <div className="filter-controls">
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
-                {status === "all" ? "All Status" : getStatusText(status)}
-              </option>
-            ))}
-          </select>
-
-          <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className="filter-select"
@@ -167,10 +155,6 @@ export default function Interviews() {
                   <div className="stat-item">
                     <span className="stat-label">COMPLETED</span>
                     <span className="stat-value">{completedCount}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Avg Score</span>
-                    <span className="stat-value">{interview.avgScore}%</span>
                   </div>
                 </div>
 

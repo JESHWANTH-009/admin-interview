@@ -43,6 +43,17 @@
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 24px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07), 0 1.5px 4px rgba(0,0,0,0.04);
+    margin-bottom: 0;
+    min-width: 220px;
+    min-height: 120px;
   }
   
   .metric-card::before {
@@ -61,18 +72,21 @@
   }
   
   .metric-header {
+    width: 100%;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
   
   .metric-label {
-    color: #6b7280;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.92rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.12em;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    text-align: center;
   }
   
   .metric-change {
@@ -106,10 +120,15 @@
   }
   
   .metric-value {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font-size: 2.8rem;
+    font-weight: 900;
     color: #1f2937;
-    line-height: 1;
+    line-height: 1.1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 0;
   }
   
   .dashboard-content {

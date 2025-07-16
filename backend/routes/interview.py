@@ -52,7 +52,20 @@ async def get_interview(interview_id: str, user=Depends(verify_firebase_token)):
 async def list_interviews(user=Depends(verify_firebase_token)):
     try:
         interviews_ref = db.collection("interviews")
-        interviews = [doc.to_dict() for doc in interviews_ref.stream()]
+        interviews = []
+        for doc in interviews_ref.stream():
+            interview = doc.to_dict()
+            candidates = interview.get("candidates", [])
+            completed_candidates = [c for c in candidates if c.get("status") == "completed" and c.get("total_score") is not None]
+            questions = interview.get("questions", [])
+            if completed_candidates and questions:
+                max_score = len(questions)
+                avg_score = sum(c["total_score"] for c in completed_candidates) / len(completed_candidates)
+                avg_score_percent = round((avg_score / max_score) * 100, 1)
+            else:
+                avg_score_percent = 0
+            interview["avgScore"] = avg_score_percent
+            interviews.append(interview)
         return {"interviews": interviews}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

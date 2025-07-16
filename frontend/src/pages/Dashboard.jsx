@@ -1,12 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
 
 export default function Dashboard({ onLogout }) {
+  const [totalInterviews, setTotalInterviews] = useState('--');
+  const [completionRate, setCompletionRate] = useState('--%');
+  const [loading, setLoading] = useState(true);
+  const [activeSessions, setActiveSessions] = useState('--');
+
+  useEffect(() => {
+    const fetchInterviewStats = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('firebase_id_token');
+        const res = await fetch("http://localhost:8000/interviews", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        const interviews = Array.isArray(data.interviews) ? data.interviews : [];
+        setTotalInterviews(interviews.length);
+        const completedCount = interviews.filter(i => i.completed === true).length;
+        const rate = interviews.length > 0 ? Math.round((completedCount / interviews.length) * 100) : 0;
+        setCompletionRate(`${rate}%`);
+        // Active Sessions logic
+        const activeCount = interviews.filter(i => {
+          const candidates = Array.isArray(i.candidates) ? i.candidates : [];
+          if (candidates.length === 0) return false;
+          const completedCandidates = candidates.filter(c => c.status === 'completed').length;
+          return candidates.length !== completedCandidates;
+        }).length;
+        setActiveSessions(activeCount);
+      } catch (err) {
+        setTotalInterviews('--');
+        setCompletionRate('--%');
+        setActiveSessions('--');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInterviewStats();
+  }, []);
+
   // Mock data for dashboard
   const metrics = [
-    { label: "Total Interviews", value: "24", change: "+12%", trend: "up" },
-    { label: "Active Sessions", value: "8", change: "+3", trend: "up" },
-    { label: "Avg Completion Rate", value: "78%", change: "+5%", trend: "up" },
+    { label: "Total Interviews", value: loading ? '--' : totalInterviews },
+    { label: "Active Sessions", value: loading ? '--' : activeSessions },
+    { label: "Avg Completion Rate", value: loading ? '--%' : completionRate },
     { label: "Avg Score", value: "82%", change: "-2%", trend: "down" },
   ];
 
@@ -87,9 +127,6 @@ export default function Dashboard({ onLogout }) {
           <div key={index} className="metric-card">
             <div className="metric-header">
               <span className="metric-label">{metric.label}</span>
-              <span className={`metric-change ${metric.trend}`}>
-                {metric.change}
-              </span>
             </div>
             <div className="metric-value">{metric.value}</div>
           </div>
