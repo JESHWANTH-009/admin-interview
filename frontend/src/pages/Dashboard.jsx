@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
 export default function Dashboard({ onLogout }) {
@@ -6,6 +7,8 @@ export default function Dashboard({ onLogout }) {
   const [completionRate, setCompletionRate] = useState('--%');
   const [loading, setLoading] = useState(true);
   const [activeSessions, setActiveSessions] = useState('--');
+  const [recentInterviews, setRecentInterviews] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInterviewStats = async () => {
@@ -37,10 +40,18 @@ export default function Dashboard({ onLogout }) {
           return candidates.length !== completedCandidates;
         }).length;
         setActiveSessions(activeCount);
+        // Sort by created_at descending and take 5 most recent
+        const sorted = interviews.slice().sort((a, b) => {
+          const aTime = new Date(a.created_at || a.createdAt || a.createdDate || 0).getTime();
+          const bTime = new Date(b.created_at || b.createdAt || b.createdDate || 0).getTime();
+          return bTime - aTime;
+        });
+        setRecentInterviews(sorted.slice(0, 5));
       } catch (err) {
         setTotalInterviews('--');
         setCompletionRate('--%');
         setActiveSessions('--');
+        setRecentInterviews([]);
       } finally {
         setLoading(false);
       }
@@ -53,36 +64,6 @@ export default function Dashboard({ onLogout }) {
     { label: "Total Interviews", value: loading ? '--' : totalInterviews },
     { label: "Active Sessions", value: loading ? '--' : activeSessions },
     { label: "Completed Sessions", value: loading || totalInterviews === '--' || activeSessions === '--' ? '--' : (totalInterviews - activeSessions) },
-  ];
-
-  const recentInterviews = [
-    {
-      id: 1,
-      title: "Frontend Developer Assessment",
-      role: "Frontend Developer",
-      status: "Active",
-      candidates: 12,
-      completed: 8,
-      date: "2024-01-15",
-    },
-    {
-      id: 2,
-      title: "Backend Engineer Interview",
-      role: "Backend Developer",
-      status: "Completed",
-      candidates: 8,
-      completed: 8,
-      date: "2024-01-12",
-    },
-    {
-      id: 3,
-      title: "DevOps Specialist Test",
-      role: "DevOps Engineer",
-      status: "Draft",
-      candidates: 0,
-      completed: 0,
-      date: "2024-01-10",
-    },
   ];
 
   const recentActivity = [
@@ -143,27 +124,32 @@ export default function Dashboard({ onLogout }) {
         <div className="content-section">
           <div className="section-header">
             <h2>Recent Interviews</h2>
-            <button className="primary">View All</button>
+            <button className="primary" onClick={() => navigate('/interviews')}>View All</button>
           </div>
           <div className="interviews-list">
-            {recentInterviews.map((interview) => (
-              <div key={interview.id} className="interview-card">
-                <div className="interview-info">
-                  <h3>{interview.title}</h3>
-                  <p className="interview-role">{interview.role}</p>
-                  <div className="interview-stats">
-                    <span>{interview.candidates} candidates</span>
-                    <span>{interview.completed} completed</span>
+            {recentInterviews.map((interview) => {
+              const completedCount = Array.isArray(interview.candidates)
+                ? interview.candidates.filter(c => c.status === "completed").length
+                : 0;
+              const createdDate = interview.created_at
+                ? new Date(interview.created_at).toLocaleDateString()
+                : "-";
+              return (
+                <div key={interview.id} className="interview-card">
+                  <div className="interview-info">
+                    <h3>{interview.title}</h3>
+                    <p className="interview-role">{interview.role}</p>
+                    <div className="interview-stats">
+                      <span>{Array.isArray(interview.candidates) ? interview.candidates.length : 0} candidates</span>
+                      <span>{completedCount} completed</span>
+                    </div>
+                  </div>
+                  <div className="interview-status">
+                    <span className="interview-date">{createdDate}</span>
                   </div>
                 </div>
-                <div className="interview-status">
-                  <span className={`status-badge ${interview.status.toLowerCase()}`}>
-                    {interview.status}
-                  </span>
-                  <span className="interview-date">{interview.date}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
