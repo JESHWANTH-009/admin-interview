@@ -138,64 +138,74 @@ export default function Interviews() {
       </div>
 
       <div className="interviews-grid">
-        {filteredInterviews.map((interview) => (
-          <div key={interview.id} className="interview-card">
-            <div className="card-header">
-              <div className="interview-title">
-                <h3>{interview.title}</h3>
-                <span className={`status-badge ${getStatusBadgeClass(interview.status)}`}>
-                  {getStatusText(interview.status)}
-                </span>
+        {filteredInterviews.map((interview) => {
+          const completedCount = Array.isArray(interview.candidates)
+            ? interview.candidates.filter(c => c.status === "completed").length
+            : 0;
+          const createdDate = interview.created_at
+            ? new Date(interview.created_at).toLocaleDateString()
+            : "-";
+          return (
+            <div key={interview.id} className="interview-card">
+              <div className="card-header">
+                <div className="interview-title">
+                  <h3>{interview.title}</h3>
+                  <span className={`status-badge ${getStatusBadgeClass(interview.status)}`}>
+                    {getStatusText(interview.status)}
+                  </span>
+                </div>
+                <div className="card-actions">
+                  <button className="action-btn" title="Edit">Edit</button>
+                  <button className="action-btn" title="Duplicate">Duplicate</button>
+                  <button className="action-btn" title="More">More</button>
+                </div>
               </div>
-              <div className="card-actions">
-                <button className="action-btn" title="Edit">Edit</button>
-                <button className="action-btn" title="Duplicate">Duplicate</button>
-                <button className="action-btn" title="More">More</button>
+
+              <div className="card-content">
+                <div className="interview-role no-icon">
+                  {interview.role}
+                </div>
+
+                <div className="interview-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Candidates</span>
+                    <span className="stat-value">{Array.isArray(interview.candidates) ? interview.candidates.length : 0}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">COMPLETED</span>
+                    <span className="stat-value">{completedCount}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Avg Score</span>
+                    <span className="stat-value">{interview.avgScore}%</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Duration</span>
+                    <span className="stat-value">{interview.duration}</span>
+                  </div>
+                </div>
+
+                <div className="interview-meta">
+                  <span className="created-date">
+                    Created: <span style={{ color: '#9ca3af', fontWeight: 500 }}>{createdDate}</span>
+                  </span>
+                  <span className="last-activity">Last activity: {interview.lastActivity}</span>
+                </div>
+              </div>
+
+              <div className="card-footer">
+                <button
+                  className="outline"
+                  onClick={() => window.location.href = `/interview/${interview.id}/details`}
+                >
+                  View Details
+                </button>
+
+                {getPrimaryAction(interview)}
               </div>
             </div>
-
-            <div className="card-content">
-              <div className="interview-role no-icon">
-                {interview.role}
-              </div>
-
-              <div className="interview-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Candidates</span>
-                  <span className="stat-value">{Array.isArray(interview.candidates) ? interview.candidates.length : 0}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Completed</span>
-                  <span className="stat-value">{interview.completed}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Avg Score</span>
-                  <span className="stat-value">{interview.avgScore}%</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Duration</span>
-                  <span className="stat-value">{interview.duration}</span>
-                </div>
-              </div>
-
-              <div className="interview-meta">
-                <span className="created-date">Created: {interview.createdDate}</span>
-                <span className="last-activity">Last activity: {interview.lastActivity}</span>
-              </div>
-            </div>
-
-            <div className="card-footer">
-            <button
-  className="outline"
-  onClick={() => window.location.href = `/interview/${interview.id}/details`}
->
-  View Details
-</button>
-
-              {getPrimaryAction(interview)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredInterviews.length === 0 && (
