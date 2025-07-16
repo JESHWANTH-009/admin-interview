@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import "./InterviewDetails.css";
 
 export default function InterviewDetail() {
   const { id } = useParams(); // interview ID from URL
@@ -26,64 +27,68 @@ export default function InterviewDetail() {
   }, [id]);
 
   if (error) {
-    return <div className="text-red-600 p-4">{error}</div>;
+    return <div className="details-container"><div className="error-message">{error}</div></div>;
   }
 
   if (!interview) {
-    return <div className="p-4">Loading interview details...</div>;
+    return <div className="details-container"><div className="loading-message">Loading interview details...</div></div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">{interview.title}</h1>
-      <p className="text-gray-700 mb-2"><strong>Role:</strong> {interview.role}</p>
-      <p className="text-gray-700 mb-2"><strong>Created At:</strong> {new Date(interview.created_at.seconds * 1000).toLocaleString()}</p>
-      <p className="text-gray-700 mb-6"><strong>Question Type:</strong> {interview.question_type}</p>
-
-      <h2 className="text-xl font-semibold mb-2 mt-6">Invited Candidates</h2>
-      {interview.candidates && interview.candidates.length > 0 ? (
-        <table className="min-w-full divide-y divide-gray-200 mt-2">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Email</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Link</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
-              <th className="px-4 py-2"></th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {interview.candidates.map((candidate, idx) => (
-              <tr key={idx}>
-                <td className="px-4 py-2 text-sm">{candidate.email}</td>
-                <td className="px-4 py-2 text-sm text-blue-600">
-                  <a
-                    href={candidate.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                  >
-                    {candidate.link}
-                  </a>
-                </td>
-                <td className="px-4 py-2 text-sm capitalize">{candidate.status}</td>
-                <td className="px-4 py-2 text-sm">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(candidate.link);
-                      alert("Link copied to clipboard!");
-                    }}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
-                  >
-                    Copy Link
-                  </button>
-                </td>
+    <div className="details-container">
+      <div className="details-card">
+        <h1 className="details-title">{interview.title}</h1>
+        <div className="details-meta-row">
+          <span className="details-role"><strong>Role:</strong> {interview.role}</span>
+          <span className="details-type"><strong>Question Type:</strong> {interview.question_type}</span>
+        </div>
+        <hr className="details-divider" />
+        <h2 className="details-subtitle">Invited Candidates</h2>
+        {interview.candidates && interview.candidates.length > 0 ? (
+          <table className="details-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Link</th>
+                <th>Status</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="text-gray-600">No candidates invited yet.</p>
-      )}
+            </thead>
+            <tbody>
+              {interview.candidates.map((candidate, idx) => (
+                <tr key={idx}>
+                  <td>{candidate.email}</td>
+                  <td>
+                    <a
+                      href={candidate.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {candidate.link}
+                    </a>
+                  </td>
+                  <td>
+                    <span className={`status-badge status-${candidate.status}`}>{candidate.status}</span>
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(candidate.link);
+                        alert("Link copied to clipboard!");
+                      }}
+                      className="copy-link-btn"
+                    >
+                      Copy Link
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="no-candidates">No candidates invited yet.</p>
+        )}
+      </div>
     </div>
   );
 }

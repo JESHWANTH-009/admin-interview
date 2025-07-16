@@ -37,16 +37,16 @@ async def send_invites(
         }
 
         try:
-            # ✅ Save candidate token doc in 'invites'
+            # Save candidate token doc in 'invites'
             db.collection("invites").document(token).set(candidate_doc)
 
-            # ✅ Update interview doc to include this candidate (Firestore ArrayUnion)
+            # Update interview doc to include this candidate (Firestore ArrayUnion)
             interview_ref = db.collection("interviews").document(data.interview_id)
             interview_ref.update({
                 "candidates": firestore.ArrayUnion([candidate_doc])
             })
 
-            # ✅ Optionally send email
+            # Optionally send email
             # send_email_via_brevo(email, link)
 
             successes.append({"email": email, "link": link})

@@ -11,6 +11,7 @@ import json
 from pydantic import BaseModel
 from typing import List
 from llm.gemini_evaluator import evaluate_answer
+from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/interviews", tags=["Interview"])
 db = firestore.client()
@@ -157,3 +158,20 @@ async def submit_answers(data: SubmitAnswersRequest):
         "total_score": total_score,
         "evaluations": evaluation_results
     }
+
+# --- Recent Activity Endpoint ---
+@router.get("/api/recent-activity", include_in_schema=True)
+def get_recent_activity():
+    try:
+        activity_ref = db.collection("activity_log").order_by("timestamp", direction=firestore.Query.DESCENDING).limit(10)
+        docs = activity_ref.stream()
+        activity = []
+        for doc in docs:
+            data = doc.to_dict()
+            activity.append({
+                "message": data.get("message", ""),
+                "timestamp": data.get("timestamp", "")
+            })
+        return JSONResponse({"activity": activity})
+    except Exception as e:
+        return JSONResponse({"activity": []})

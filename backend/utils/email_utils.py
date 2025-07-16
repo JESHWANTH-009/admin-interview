@@ -11,7 +11,7 @@ FROM_EMAIL = os.getenv("SENDER_EMAIL")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")  # fallback to localhost
 
 if not BREVO_API_KEY or not FROM_EMAIL:
-    raise ValueError("❌ BREVO_API_KEY or SENDER_EMAIL not set in environment variables")
+    raise ValueError("BREVO_API_KEY or SENDER_EMAIL not set in environment variables")
 
 # Sends email using token (used if only token is passed, link is auto-generated)
 def send_interview_email(email: str, token: str) -> bool:
@@ -46,8 +46,8 @@ def send_email_via_brevo(email: str, link: str) -> bool:
     response = requests.post(url, json=payload, headers=headers)
 
     if response.status_code != 201:
-        print(f"❌ Email to {email} failed: {response.status_code} - {response.text}")
+        print(f"Email to {email} failed: {response.status_code} - {response.text}")
     else:
-        print(f"✅ Email sent to {email}")
+        print(f"Email sent to {email}")
 
     return response.status_code == 201

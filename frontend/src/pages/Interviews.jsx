@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Interviews.css";
 
 export default function Interviews() {
@@ -6,6 +7,7 @@ export default function Interviews() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [interviews, setInterviews] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -34,7 +36,7 @@ export default function Interviews() {
     fetchInterviews();
   }, []);
 
-  const roles = ["all", "Frontend Developer", "Backend Developer", "DevOps Engineer", "Full Stack Developer", "UI/UX Designer"];
+  const roles = ["Frontend Developer", "Backend Developer", "DevOps Engineer", "Full Stack Developer", "UI/UX Designer"];
   const statuses = ["all", "active", "completed", "draft", "paused"];
 
   const filteredInterviews = interviews.filter((interview) => {
@@ -80,49 +82,25 @@ export default function Interviews() {
 
   return (
     <div className="interviews-page">
-      <div className="page-header">
-        <div className="header-content">
-          <h1 className="page-title">Interviews</h1>
-          <p className="page-subtitle">Manage and track all your interview sessions</p>
-        </div>
-        <button className="primary create-btn">
-          + Create Interview
-        </button>
+      <div className="interviews-header-bar">
+        <input
+          className="search-input"
+          type="text"
+          placeholder="Search interviews..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+        <select
+          className="role-filter"
+          value={roleFilter}
+          onChange={e => setRoleFilter(e.target.value)}
+        >
+          <option value="">All Roles</option>
+          {roles.map((role) => (
+            <option key={role} value={role}>{role}</option>
+          ))}
+        </select>
       </div>
-
-      <div className="filters-section">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search interviews..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <span className="search-icon">🔍</span>
-        </div>
-
-        <div className="filter-controls">
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="filter-select"
-          >
-            {roles.map((role) => (
-              <option key={role} value={role}>
-                {role === "all" ? "All Roles" : role}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="results-summary">
-        <span className="results-count">
-          {filteredInterviews.length} interview{filteredInterviews.length !== 1 ? 's' : ''} found
-        </span>
-      </div>
-
       <div className="interviews-grid">
         {filteredInterviews.map((interview) => {
           const completedCount = Array.isArray(interview.candidates)
@@ -131,63 +109,26 @@ export default function Interviews() {
           const createdDate = interview.created_at
             ? new Date(interview.created_at).toLocaleDateString()
             : "-";
+          const isCompleted = Array.isArray(interview.candidates) && interview.candidates.length > 0 && completedCount === interview.candidates.length;
           return (
             <div key={interview.id} className="interview-card">
-              <div className="card-header">
-                <div className="interview-title">
-                  <h3>{interview.title}</h3>
-                  <span className={`status-badge ${getStatusBadgeClass(interview.status)}`}>
-                    {getStatusText(interview.status)}
-                  </span>
-                </div>
+              <div className="interview-card-header">
+                <h3 className="interview-title">{interview.title}</h3>
+                <span className={`status-badge ${isCompleted ? 'completed' : 'active'}`}>{isCompleted ? 'Completed' : 'Active'}</span>
               </div>
-
-              <div className="card-content">
-                <div className="interview-role no-icon">
-                  {interview.role}
-                </div>
-
-                <div className="interview-stats">
-                  <div className="stat-item">
-                    <span className="stat-label">Candidates</span>
-                    <span className="stat-value">{Array.isArray(interview.candidates) ? interview.candidates.length : 0}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-label">COMPLETED</span>
-                    <span className="stat-value">{completedCount}</span>
-                  </div>
-                </div>
-
-                <div className="interview-meta">
-                  <span className="created-date">
-                    Created: <span style={{ color: '#9ca3af', fontWeight: 500 }}>{createdDate}</span>
-                  </span>
-                </div>
+              <div className="interview-role">{interview.role}</div>
+              <div className="interview-meta">
+                <div><strong>{Array.isArray(interview.candidates) ? interview.candidates.length : 0}</strong> candidates</div>
+                <div className="meta-divider" />
+                <div><strong>{completedCount}</strong> completed</div>
+                <div className="meta-divider" />
+                <div>Created: {createdDate}</div>
               </div>
-
-              <div className="card-footer">
-                <button
-                  className="outline"
-                  onClick={() => window.location.href = `/interview/${interview.id}/details`}
-                >
-                  View Details
-                </button>
-
-                {getPrimaryAction(interview)}
-              </div>
+              <button className="view-details-btn" onClick={() => navigate(`/interviews/${interview.id}`)}>View Details</button>
             </div>
           );
         })}
       </div>
-
-      {filteredInterviews.length === 0 && (
-        <div className="empty-state">
-          <div className="empty-icon">No Data</div>
-          <h3>No interviews found</h3>
-          <p>Try adjusting your search or filters to find what you're looking for.</p>
-          <button className="primary">Create Your First Interview</button>
-        </div>
-      )}
     </div>
   );
 }

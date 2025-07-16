@@ -28,7 +28,7 @@ if not firebase_admin._apps:
         )
     cred = credentials.Certificate(service_account_path)
     firebase_admin.initialize_app(cred)
-    print("✅ Firebase Admin SDK initialized successfully.")
+    print("Firebase Admin SDK initialized successfully.")
 
 # Bearer auth scheme
 bearer_scheme = HTTPBearer()
@@ -50,14 +50,14 @@ def save_user_to_firestore(uid: str, email: str, name: str = ""):
 # Verify Firebase ID Token and log user in
 async def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
     try:
-        # 🔍 Debugging the raw token
-        print("🔐 Authorization Header:", credentials.credentials if credentials else "None")
+        # Debugging the raw token
+        print("Authorization Header:", credentials.credentials if credentials else "None")
 
         token = credentials.credentials
         decoded_token = firebase_auth.verify_id_token(token)
 
-        # 🔍 Debug decoded token data
-        print("✅ Decoded Token:", decoded_token)
+        # Debug decoded token data
+        print("Decoded Token:", decoded_token)
 
         uid = decoded_token.get("uid")
         email = decoded_token.get("email")
@@ -73,7 +73,7 @@ async def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Depe
         }
 
     except Exception as e:
-        print(f"❌ Token verification failed: {str(e)}")  # Add this log
+        print(f"Token verification failed: {str(e)}")  # Add this log
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid Firebase token: {str(e)}"
