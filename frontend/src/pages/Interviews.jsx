@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./Interviews.css";
-import { useNavigate } from "react-router-dom";
 
 export default function Interviews() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [interviews, setInterviews] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -154,11 +152,6 @@ export default function Interviews() {
                     {getStatusText(interview.status)}
                   </span>
                 </div>
-                <div className="card-actions">
-                  <button className="action-btn" title="Edit">Edit</button>
-                  <button className="action-btn" title="Duplicate">Duplicate</button>
-                  <button className="action-btn" title="More">More</button>
-                </div>
               </div>
 
               <div className="card-content">
@@ -179,17 +172,12 @@ export default function Interviews() {
                     <span className="stat-label">Avg Score</span>
                     <span className="stat-value">{interview.avgScore}%</span>
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">Duration</span>
-                    <span className="stat-value">{interview.duration}</span>
-                  </div>
                 </div>
 
                 <div className="interview-meta">
                   <span className="created-date">
                     Created: <span style={{ color: '#9ca3af', fontWeight: 500 }}>{createdDate}</span>
                   </span>
-                  <span className="last-activity">Last activity: {interview.lastActivity}</span>
                 </div>
               </div>
 
