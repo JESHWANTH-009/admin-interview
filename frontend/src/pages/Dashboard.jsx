@@ -20,8 +20,14 @@ export default function Dashboard({ onLogout }) {
         const data = await res.json();
         const interviews = Array.isArray(data.interviews) ? data.interviews : [];
         setTotalInterviews(interviews.length);
-        const completedCount = interviews.filter(i => i.completed === true).length;
-        const rate = interviews.length > 0 ? Math.round((completedCount / interviews.length) * 100) : 0;
+        // Calculate completed sessions: candidates.length > 0 && candidates.length === responses.length
+        const completedSessions = interviews.filter(i => {
+          const candidates = Array.isArray(i.candidates) ? i.candidates : [];
+          const responses = Array.isArray(i.responses) ? i.responses : [];
+          return candidates.length > 0 && candidates.length === responses.length;
+        }).length;
+        // Calculate completion rate
+        const rate = interviews.length > 0 ? Math.round((completedSessions / interviews.length) * 100) : 0;
         setCompletionRate(`${rate}%`);
         // Active Sessions logic
         const activeCount = interviews.filter(i => {
@@ -46,8 +52,7 @@ export default function Dashboard({ onLogout }) {
   const metrics = [
     { label: "Total Interviews", value: loading ? '--' : totalInterviews },
     { label: "Active Sessions", value: loading ? '--' : activeSessions },
-    { label: "Avg Completion Rate", value: loading ? '--%' : completionRate },
-    { label: "Avg Score", value: "82%", change: "-2%", trend: "down" },
+    { label: "Completed Sessions", value: loading || totalInterviews === '--' || activeSessions === '--' ? '--' : (totalInterviews - activeSessions) },
   ];
 
   const recentInterviews = [
