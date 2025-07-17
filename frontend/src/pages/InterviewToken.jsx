@@ -12,6 +12,7 @@ export default function InterviewToken() {
   const [answers, setAnswers] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [evaluation, setEvaluation] = useState(null);
+  const [evaluating, setEvaluating] = useState(false);
 
  
 
@@ -45,16 +46,20 @@ export default function InterviewToken() {
   const prevQuestion = () => setCurrentQuestion((prev) => prev - 1);
 
   const handleSubmit = async () => {
+    setSubmitted(true);
+    setEvaluating(true);
     try {
       const res = await apiClient.post(`${API_URL}/interviews/submit`, {
         token,
         answers
       });
       setEvaluation(res.data);
-      setSubmitted(true);
     } catch (err) {
       alert("Failed to submit answers.");
+      setSubmitted(false);
       console.error("Submission failed:", err);
+    } finally {
+      setEvaluating(false);
     }
   };
 
@@ -64,6 +69,26 @@ export default function InterviewToken() {
 
   if (questionList.length === 0) {
     return <div className="interview-token-page error">No questions found or invalid link.</div>;
+  }
+
+  // Spinner component
+  function Spinner() {
+    return (
+      <span className="spinner" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: 12 }}>
+        <span className="spinner-circle"></span>
+      </span>
+    );
+  }
+
+  if (submitted && evaluating) {
+    return (
+      <div style={{ maxWidth: 600, margin: '60px auto', background: '#f8fafc', borderRadius: 16, padding: 40, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', textAlign: 'center' }}>
+        <h2 style={{ color: '#16a34a', fontWeight: 800, marginBottom: 16 }}>Your test has been submitted successfully.</h2>
+        <p style={{ color: '#334155', fontSize: 18, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          Your answers are being evaluated… <Spinner />
+        </p>
+      </div>
+    );
   }
 
   if (submitted && evaluation) {
