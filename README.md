@@ -78,7 +78,6 @@ backend/
 cd frontend
 npm install
 npm start
-# Runs the app at http://localhost:3000
 ```
 
 ---
@@ -91,7 +90,7 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload
-# Runs FastAPI server at http://localhost:8000
+
 ```
 
 ---
@@ -102,7 +101,7 @@ uvicorn main:app --reload
 ```
 GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
 GEMINI_API_KEY=your_gemini_api_key
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=your_frontend_url
 ```
 
 ### Frontend (`frontend/.env`)
@@ -114,7 +113,7 @@ REACT_APP_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 REACT_APP_FIREBASE_APP_ID=your-app-id
 REACT_APP_FIREBASE_MEASUREMENT_ID=your-measurement-id
-REACT_APP_API_URL=http://localhost:8000
+REACT_APP_API_URL=your_backend_url
 ```
 
 ---
