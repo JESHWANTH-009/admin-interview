@@ -16,8 +16,7 @@ from fastapi.responses import JSONResponse
 router = APIRouter(prefix="/interviews", tags=["Interview"])
 db = firestore.client()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+
 
 @router.post("/create")
 async def create_interview(data: CreateInterviewRequest, user=Depends(verify_firebase_token)):

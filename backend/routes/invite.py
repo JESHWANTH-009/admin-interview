@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 from typing import List
 from auth import verify_firebase_token
 from firebase_admin import firestore
-# from utils.email_utils import send_email_via_brevo  # Currently disabled
+from utils.email_utils import send_email # Currently disabled
 import uuid
 from datetime import datetime
 import os
@@ -47,7 +47,11 @@ async def send_invites(
             })
 
             # Optionally send email
-            # send_email_via_brevo(email, link)
+            await send_email(
+                email,
+                "Your Interview Link",
+                f"Hello,\n\nYou have been invited to an interview. Please use the following link to access your interview:\n{link}\n\nBest regards,\nAdmin Team"
+            )
 
             successes.append({"email": email, "link": link})
 
