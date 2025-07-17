@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Interviews.css";
+const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Interviews() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,7 +14,7 @@ export default function Interviews() {
     const fetchInterviews = async () => {
       try {
         const token = localStorage.getItem('firebase_id_token');
-        const response = await fetch("http://localhost:8000/interviews", {
+        const response = await fetch(`${API_URL}/interviews`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './InterviewDetails.css';
+const API_URL = process.env.REACT_APP_API_URL;
 
 const InterviewDetails = () => {
   const { id } = useParams();
@@ -11,7 +12,7 @@ const InterviewDetails = () => {
     const fetchInterview = async () => {
       try {
         const token = localStorage.getItem('firebase_id_token');
-        const res = await fetch(`http://localhost:8000/interviews/${id}`, {
+        const res = await fetch(`${API_URL}/interviews/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

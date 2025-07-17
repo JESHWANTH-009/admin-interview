@@ -9,7 +9,6 @@ router = APIRouter(prefix="/upload", tags=["Upload"])
 @router.post("/pdf")
 async def upload_pdf(
     file: UploadFile = File(...),
-    question_type: str = Form(...),
     # user=Depends(verify_firebase_token)  # Uncomment when using authentication
 ):
     if not file.filename or not file.filename.lower().endswith('.pdf'):

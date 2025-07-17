@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../apiClient';
 import './CreateTemplateModal.css'; // Reuse modal styles
 
 export default function UploadPDFModal({ open, onClose, onExtracted }) {
   const [file, setFile] = useState(null);
-  const [questionType, setQuestionType] = useState('Text');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-  };
-
-  const handleTypeChange = (e) => {
-    setQuestionType(e.target.value);
   };
 
   const handleExtract = async (e) => {
@@ -27,19 +22,28 @@ export default function UploadPDFModal({ open, onClose, onExtracted }) {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('question_type', questionType);
       const token = localStorage.getItem('firebase_id_token');
-      const res = await axios.post('/upload/pdf', formData, {
+      const res = await apiClient.post('/upload/pdf', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
         },
       });
-      if (onExtracted) onExtracted(res.data.questions || [], questionType);
+      if (onExtracted) onExtracted(res.data.questions || []);
       setFile(null);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to upload PDF.');
+      let msg = 'Failed to upload PDF.';
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          msg = err.response.data.detail;
+        } else if (Array.isArray(err.response.data.detail)) {
+          msg = err.response.data.detail.map(e => e.msg).join('; ');
+        } else if (typeof err.response.data.detail === 'object') {
+          msg = JSON.stringify(err.response.data.detail);
+        }
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -55,13 +59,6 @@ export default function UploadPDFModal({ open, onClose, onExtracted }) {
           <label className="modal-label">Select PDF File *</label>
           <input type="file" accept="application/pdf" onChange={handleFileChange} />
           {file && <div className="imported-file">{file.name}</div>}
-        </div>
-        <div className="modal-group">
-          <label className="modal-label">Question Type *</label>
-          <select className="modal-input" value={questionType} onChange={handleTypeChange}>
-            <option value="Text">Text</option>
-            <option value="MCQ">MCQ</option>
-          </select>
         </div>
         {error && <div className="auth-error" style={{ marginBottom: 12 }}>{error}</div>}
         <div className="modal-actions">

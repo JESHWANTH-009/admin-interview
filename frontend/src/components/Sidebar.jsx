@@ -6,7 +6,6 @@ const navItems = [
   { label: "Dashboard", path: "/dashboard" },
   { label: "Interviews", path: "/interviews" },
   { label: "Create Interview", path: "/create" },
-  { label: "Settings", path: "/settings" },
 ];
 
 export default function Sidebar() {

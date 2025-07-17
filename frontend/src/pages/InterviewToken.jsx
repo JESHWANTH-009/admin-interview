@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../apiClient";
 import "./InterviewToken.css";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -18,10 +18,10 @@ export default function InterviewToken() {
   useEffect(() => {
     const loadInterview = async () => {
       try {
-        const res1 = await axios.get(`${API_URL}/invite/interview/${token}`);
+        const res1 = await apiClient.get(`${API_URL}/invite/interview/${token}`);
         const candidateData = res1.data;
 
-        const res2 = await axios.get(`${API_URL}/interviews/public/${candidateData.interview_id}`);
+        const res2 = await apiClient.get(`${API_URL}/interviews/public/${candidateData.interview_id}`);
         setInterview(res2.data);
         setAnswers(new Array(res2.data?.questions?.length || 0).fill(""));
       } catch (err) {
@@ -46,7 +46,7 @@ export default function InterviewToken() {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post(`${API_URL}/interviews/submit`, {
+      const res = await apiClient.post(`${API_URL}/interviews/submit`, {
         token,
         answers
       });

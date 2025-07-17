@@ -55,7 +55,7 @@ function Login({ onLoginSuccess, onToggleView }) {
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
-      console.log('✅ Google Login Successful');
+      console.log('Google Login Successful');
       console.log('UID:', user.uid);
       console.log('Email:', user.email);
       console.log(`Token:\n${idToken}`);

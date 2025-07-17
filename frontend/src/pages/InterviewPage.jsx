@@ -1,10 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../apiClient';
 import './InterviewPage.css';
-
-const API_BASE_URL = 'http://localhost:8000'; // or your FastAPI backend URL
+const API_URL = process.env.REACT_APP_API_URL;
+//const API_BASE_URL = 'http://localhost:8000'; 
 
 const InterviewPage = () => {
   const { token } = useParams();
@@ -15,7 +15,7 @@ const InterviewPage = () => {
   useEffect(() => {
     const fetchInterview = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/interview/${token}`);
+        const res = await apiClient.get(`${API_URL}/interview/${token}`);
         setInterviewData(res.data);
       } catch (err) {
         console.error('Error fetching interview:', err);
@@ -32,7 +32,7 @@ const InterviewPage = () => {
   const handleSubmit = async () => {
     const formattedResponses = Object.entries(answers).map(([question, answer]) => ({ question, answer }));
     try {
-      const res = await axios.post(`${API_BASE_URL}/interview/${token}/submit`, {
+      const res = await apiClient.post(`${API_URL}/interview/${token}/submit`, {
         token,
         responses: formattedResponses,
       });

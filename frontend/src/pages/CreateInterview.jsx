@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CreateTemplateModal from "../components/CreateTemplateModal";
 import UploadPDFModal from "../components/UploadPDFModal";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../apiClient";
 import "./CreateInterview.css";
 
 const ROLES = [
@@ -67,10 +67,10 @@ export default function CreateInterview() {
     setShowTemplateSection(e.target.value === "template");
   };
 
-  const handleExtracted = (questions, type) => {
+  const handleExtracted = (questions) => {
     setExtractedQuestions(questions);
     setEditableQuestions(questions);
-    setQuestionType(type);
+    setQuestionType('Text'); // Default to 'Text' for PDF uploads
   };
 
   const handleQuestionEdit = (index, value) => {
@@ -94,21 +94,17 @@ export default function CreateInterview() {
       let type = questionType;
       if (form.questionSource === "ai") {
         // Generate questions via backend
-        const res = await axios.post("/generate/ai", {
+        const res = await apiClient.post("/generate/ai", {
           role: form.role,
           experience: form.experience,
           count: form.numQuestions,
           question_type: "Text" // Always use 'Text'
-        }, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("firebase_id_token")}`,
-          },
         });
         questions = res.data.questions;
         type = "AI";
       }
       const token = localStorage.getItem("firebase_id_token");
-      const response = await axios.post(
+      const response = await apiClient.post(
         "/interviews/create",
         {
           title: form.title,
@@ -116,11 +112,6 @@ export default function CreateInterview() {
           question_type: form.questionSource === "ai" ? "Text" : type,
           questions: questions,
           created_at: new Date().toISOString()
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
       const interview_id = response.data.interview_id;

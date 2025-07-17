@@ -4,7 +4,6 @@ python-multipart
 pdfplumber
 python-dotenv
 pydantic
-httpx
 google-generativeai
 firebase-admin 
 httpx

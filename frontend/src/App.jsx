@@ -15,7 +15,6 @@ import CreateInterview from "./pages/CreateInterview";
 import InterviewDetail from "./pages/InterviewDetail";
 import InterviewDetails from './pages/InterviewDetails';//working
 import SendInvites from "./pages/SendInvites";
-import Settings from "./pages/Settings";
 import InterviewToken from "./pages/InterviewToken";
 import Signup from './components/Signup';
 import Login from './components/Login';
@@ -44,7 +43,6 @@ function AppLayout({ onLogout }) {
           <Route path="/interview/:id/details" element={<InterviewDetails />} />
           <Route path="/send-invites/:interviewId" element={<SendInvites />} />
           <Route path="/interview/:token" element={<InterviewToken />} />
-          <Route path="/settings" element={<Settings />} />
           {/* Catch-all route for unknown paths */}
           <Route path="*" element={<div className="p-6 text-center text-red-600">404 - Page Not Found</div>} />
         </Routes>

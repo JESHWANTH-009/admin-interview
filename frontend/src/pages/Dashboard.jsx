@@ -15,7 +15,7 @@ export default function Dashboard({ onLogout }) {
       setLoading(true);
       try {
         const token = localStorage.getItem('firebase_id_token');
-        const res = await fetch("http://localhost:8000/interviews", {
+        const res = await fetch(`${API_URL}/interviews`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

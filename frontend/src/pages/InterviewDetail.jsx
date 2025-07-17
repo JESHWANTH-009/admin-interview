@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../apiClient";
 import "./InterviewDetails.css";
 
 export default function InterviewDetail() {
@@ -12,7 +12,7 @@ export default function InterviewDetail() {
     const fetchInterview = async () => {
       try {
         const token = localStorage.getItem("firebase_id_token");
-        const res = await axios.get(`/interviews/${id}`, {
+        const res = await apiClient.get(`/interviews/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -40,7 +40,6 @@ export default function InterviewDetail() {
         <h1 className="details-title">{interview.title}</h1>
         <div className="details-meta-row">
           <span className="details-role"><strong>Role:</strong> {interview.role}</span>
-          <span className="details-type"><strong>Question Type:</strong> {interview.question_type}</span>
         </div>
         <hr className="details-divider" />
         <h2 className="details-subtitle">Invited Candidates</h2>
