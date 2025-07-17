@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Interviews.css";
+import apiClient from '../apiClient';
 const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Interviews() {
@@ -81,6 +82,16 @@ export default function Interviews() {
     return null;
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this interview?')) return;
+    try {
+      await apiClient.delete(`/interviews/${id}`);
+      setInterviews((prev) => prev.filter((interview) => interview.id !== id));
+    } catch (err) {
+      alert('Failed to delete interview.');
+    }
+  };
+
   return (
     <div className="interviews-page">
       <div className="interviews-header-bar">
@@ -126,6 +137,7 @@ export default function Interviews() {
                 <div>Created: {createdDate}</div>
               </div>
               <button className="view-details-btn" onClick={() => navigate(`/interviews/${interview.id}`)}>View Details</button>
+              <button className="delete-btn" onClick={() => handleDelete(interview.id)} style={{marginTop: 8, background: '#ff4d4f', color: 'white', border: 'none', borderRadius: 4, padding: '6px 12px', cursor: 'pointer'}}>Delete</button>
             </div>
           );
         })}

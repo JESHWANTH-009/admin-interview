@@ -159,6 +159,15 @@ async def submit_answers(data: SubmitAnswersRequest):
         "evaluations": evaluation_results
     }
 
+@router.delete("/{interview_id}")
+async def delete_interview(interview_id: str, user=Depends(verify_firebase_token)):
+    doc_ref = db.collection("interviews").document(interview_id)
+    doc = doc_ref.get()
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    doc_ref.delete()
+    return {"message": "Interview deleted"}
+
 # --- Recent Activity Endpoint ---
 @router.get("/api/recent-activity", include_in_schema=True)
 def get_recent_activity():
