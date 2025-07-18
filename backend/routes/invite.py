@@ -11,8 +11,8 @@ import os
 router = APIRouter(prefix="/invite", tags=["Invites"])
 db = firestore.client()
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+#, "http://localhost:3000"
 class InviteSendRequest(BaseModel):
     interview_id: str
     emails: List[EmailStr]
@@ -47,6 +47,7 @@ async def send_invites(
             })
 
             # Optionally send email
+            print(f"Sending email to: {email} with link: {link}")
             await send_email(
                 email,
                 "Your Interview Link",
