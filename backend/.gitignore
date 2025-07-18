@@ -1,6 +1,24 @@
-# .gitignore
+# Python virtual environment
 venv/
-serviceAccountKey.json
-_pycache_/
+
+# Bytecode cache
+__pycache__/
+*.pyc
+
+# Environment files (important)
+.env
 backend/.env
+
+# Firebase secrets
+serviceAccountKey.json
 backend/serviceAccountKey.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code settings (if using VS Code)
+.vscode/
+
+# Logs
+*.log
