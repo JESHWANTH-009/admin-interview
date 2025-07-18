@@ -105,6 +105,7 @@ export default function InterviewDetail() {
                 <th>Email</th>
                 <th>Link</th>
                 <th>Status</th>
+                <th>Score</th>
                 <th></th>
               </tr>
             </thead>
@@ -123,6 +124,9 @@ export default function InterviewDetail() {
                   </td>
                   <td>
                     <span className={`status-badge status-${candidate.status}`}>{candidate.status}</span>
+                  </td>
+                  <td>
+                    {candidate.status === 'completed' && candidate.total_score !== undefined ? candidate.total_score : '-'}
                   </td>
                   <td>
                     <button
