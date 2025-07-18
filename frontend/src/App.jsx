@@ -18,6 +18,7 @@ import SendInvites from "./pages/SendInvites";
 import InterviewToken from "./pages/InterviewToken";
 import Signup from './components/Signup';
 import Login from './components/Login';
+import { auth } from "./firebase";
 
 import "./App.css";
 
@@ -56,7 +57,24 @@ export default function App() {
   useEffect(() => {
     const handler = () => setIsAuthenticated(!!localStorage.getItem('firebase_id_token'));
     window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
+    // --- Token refresh interval ---
+    const interval = setInterval(async () => {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const newToken = await user.getIdToken(true); // force refresh
+          localStorage.setItem('firebase_id_token', newToken);
+        } catch (err) {
+          // If refresh fails, log out user
+          localStorage.removeItem('firebase_id_token');
+          setIsAuthenticated(false);
+        }
+      }
+    }, 10 * 60 * 1000); // every 10 minutes
+    return () => {
+      window.removeEventListener('storage', handler);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleLogout = () => {

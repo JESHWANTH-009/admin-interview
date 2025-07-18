@@ -14,6 +14,7 @@ export default function InterviewToken() {
   const [evaluation, setEvaluation] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
   const [candidateEmail, setCandidateEmail] = useState("");
+  const [candidateStatus, setCandidateStatus] = useState("");
 
   useEffect(() => {
     const loadInterview = async () => {
@@ -21,6 +22,7 @@ export default function InterviewToken() {
         const res1 = await apiClient.get(`${API_URL}/invite/interview/${token}`);
         const candidateData = res1.data;
         setCandidateEmail(candidateData.email || "");
+        setCandidateStatus(candidateData.status || "");
         const res2 = await apiClient.get(`${API_URL}/interviews/public/${candidateData.interview_id}`);
         setInterview(res2.data);
         setAnswers(new Array(res2.data?.questions?.length || 0).fill(""));
@@ -64,6 +66,18 @@ export default function InterviewToken() {
   const questionList = interview?.questions || [];
 
   if (loading) return <div className="interview-token-page">Loading interview...</div>;
+
+  if (candidateStatus === "completed") {
+    return (
+      <div style={{ maxWidth: 600, margin: '60px auto', background: '#f8fafc', borderRadius: 16, padding: 40, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', textAlign: 'center' }}>
+        <h2 style={{ color: '#2563eb', fontWeight: 800, marginBottom: 16 }}>Interview Already Completed</h2>
+        <p style={{ color: '#334155', fontSize: 18, marginBottom: 0 }}>
+          You have already completed this interview. You cannot retake it.<br/>
+          If you believe this is a mistake, please contact your administrator.
+        </p>
+      </div>
+    );
+  }
 
   if (questionList.length === 0) {
     return <div className="interview-token-page error">No questions found or invalid link.</div>;
