@@ -42,7 +42,6 @@ function AppLayout({ onLogout }) {
           <Route path="/interviews/:id" element={<InterviewDetail />} />
           <Route path="/interview/:id/details" element={<InterviewDetails />} />
           <Route path="/send-invites/:interviewId" element={<SendInvites />} />
-          <Route path="/interview/:token" element={<InterviewToken />} />
           {/* Catch-all route for unknown paths */}
           <Route path="*" element={<div className="p-6 text-center text-red-600">404 - Page Not Found</div>} />
         </Routes>
@@ -94,6 +93,9 @@ export default function App() {
             />
           }
         />
+
+        {/* Candidate Interview Route (NO sidebar) */}
+        <Route path="/interview/:token" element={<InterviewToken />} />
 
         {/* Root redirect */}
         <Route

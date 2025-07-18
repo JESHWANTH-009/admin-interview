@@ -13,15 +13,14 @@ export default function InterviewToken() {
   const [submitted, setSubmitted] = useState(false);
   const [evaluation, setEvaluation] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
-
- 
+  const [candidateEmail, setCandidateEmail] = useState("");
 
   useEffect(() => {
     const loadInterview = async () => {
       try {
         const res1 = await apiClient.get(`${API_URL}/invite/interview/${token}`);
         const candidateData = res1.data;
-
+        setCandidateEmail(candidateData.email || "");
         const res2 = await apiClient.get(`${API_URL}/interviews/public/${candidateData.interview_id}`);
         setInterview(res2.data);
         setAnswers(new Array(res2.data?.questions?.length || 0).fill(""));
@@ -32,7 +31,6 @@ export default function InterviewToken() {
         setLoading(false);
       }
     };
-
     loadInterview();
   }, [token]);
 
@@ -131,38 +129,80 @@ export default function InterviewToken() {
   }
 
   return (
-    <div className="interview-token-container">
-      <h1 className="interview-title">{interview?.title}</h1>
-      <p className="question-progress">
-        Question {currentQuestion + 1} of {questionList.length}
-      </p>
-
-      <div className="question-box">
-        <p className="question-text">{questionList[currentQuestion]}</p>
-      </div>
-
-      <textarea
-        className="answer-box"
-        placeholder="Type your answer here..."
-        value={answers[currentQuestion]}
-        onChange={handleAnswerChange}
-        required
-      />
-
-      <div className="button-group">
-        <button
-          disabled={currentQuestion === 0}
-          onClick={prevQuestion}
-          className="nav-btn"
-        >
-          Previous
-        </button>
-
-        {currentQuestion < questionList.length - 1 ? (
-          <button onClick={nextQuestion} className="nav-btn primary-btn">Next</button>
-        ) : (
-          <button onClick={handleSubmit} className="nav-btn submit-btn">Submit</button>
+    <div>
+      {/* Top bar with app header and candidate email */}
+      <div style={{
+        width: '100%',
+        background: 'linear-gradient(90deg, #1e293b 0%, #2563eb 100%)',
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '18px 36px 18px 32px',
+        boxShadow: '0 2px 12px rgba(37,99,235,0.08)',
+        fontWeight: 700,
+        fontSize: 20,
+        letterSpacing: '0.5px',
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomLeftRadius: 18,
+        borderBottomRightRadius: 18,
+        marginBottom: 36
+      }}>
+        <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: '1px', color: '#fff' }}>InterviewAdmin</span>
+        {candidateEmail && (
+          <span style={{
+            background: 'rgba(255,255,255,0.10)',
+            padding: '8px 22px',
+            borderRadius: 999,
+            fontWeight: 600,
+            fontSize: 16,
+            color: '#e0e7ef',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            border: '1.5px solid #3b82f6',
+            letterSpacing: '0.2px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}>
+            <span style={{ marginRight: 8, fontSize: 18, color: '#60a5fa' }}>@</span>
+            {candidateEmail}
+          </span>
         )}
+      </div>
+      <div className="interview-token-container">
+        <h1 className="interview-title">{interview?.title}</h1>
+        <p className="question-progress">
+          Question {currentQuestion + 1} of {questionList.length}
+        </p>
+
+        <div className="question-box">
+          <p className="question-text">{questionList[currentQuestion]}</p>
+        </div>
+
+        <textarea
+          className="answer-box"
+          placeholder="Type your answer here..."
+          value={answers[currentQuestion]}
+          onChange={handleAnswerChange}
+          required
+        />
+
+        <div className="button-group">
+          <button
+            disabled={currentQuestion === 0}
+            onClick={prevQuestion}
+            className="nav-btn"
+          >
+            Previous
+          </button>
+
+          {currentQuestion < questionList.length - 1 ? (
+            <button onClick={nextQuestion} className="nav-btn primary-btn">Next</button>
+          ) : (
+            <button onClick={handleSubmit} className="nav-btn submit-btn">Submit</button>
+          )}
+        </div>
       </div>
     </div>
   );
